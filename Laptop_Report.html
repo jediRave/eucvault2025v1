@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Laptop Status Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0f172a;
+            color: #e5e7eb;
+            padding: 20px;
+        }
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 5px;
+        }
+        h2 {
+            color: #e5e7eb;
+        }
+        .subtitle {
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #111827;
+            color: #e5e7eb;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .tab-btn.active {
+            background: #38bdf8;
+            color: #0f172a;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+            gap: 16px;
+        }
+        .card {
+            background-color: #020617;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid #1f2937;
+        }
+        .label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+        .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .health-pill {
+            background: #111827;
+            border: 1px solid #1f2937;
+        }
+        .gauge-container {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .gauge {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 8px;
+        }
+        .gauge-inner {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: #020617;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .gauge-label {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        .gauge-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .core-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 50px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .bar-bg {
+            height: 8px;
+            background: #111827;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg,#22c55e,#eab308,#ef4444);
+        }
+        .core-pct {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+        .muted {
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+        .big-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <h1>Laptop Status Dashboard</h1>
+    <div class="subtitle">
+        U-StrideTech • Windows 11 • Intel64 Family 6 Model 186 Stepping 2, GenuineIntel
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('standard')" id="btn-standard">Standard User</button>
+        <button class="tab-btn" onclick="showTab('pro')" id="btn-pro">Pro User</button>
+    </div>
+
+    <!-- Standard User Tab -->
+    <div class="tab-content active" id="standardTab">
+        <div class="grid">
+            <div class="card">
+                <div class="label">Overall System Health</div>
+                <div class="value" style="color:#4CAF50; margin-top:4px;">
+                    Healthy
+                </div>
+                <div class="muted" style="margin-top:8px;">
+                    Based on current CPU, RAM and disk usage.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="label">Internet Speed (approx, live sample)</div>
+                <div class="value" style="margin-top:4px;">
+                    ↓ 0.0 Mbps &nbsp;&nbsp; ↑ 0.0 Mbps
+                </div>
+                <div class="muted" style="margin-top:8px;">
+                    This is a 1-second snapshot of current network traffic, not a full ISP speed test.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="label">Battery</div>
+                <div class="value" style="margin-top:4px;">
+                    100% (Plugged In)
+                </div>
+                <div class="muted" style="margin-top:8px;">
+                    If plugged in, it's safe to run heavy tasks or gaming for longer.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="label">Uptime</div>
+                <div class="big-number" style="margin-top:4px;">
+                    1.3 h
+                </div>
+                <div class="muted">
+                    Time since last restart.
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h2>Resource Usage</h2>
+            <div class="gauge-container">
+                <div>
+                    <div class="gauge" style="background: conic-gradient(#22c55e 0deg 90.36000000000001deg, #111827 90.36000000000001deg 360deg);">
+                        <div class="gauge-inner">
+                            <div class="gauge-value">25%</div>
+                            <div class="gauge-label">CPU</div>
+                        </div>
+                    </div>
+                    <div class="muted">Current processor load.</div>
+                </div>
+
+                <div>
+                    <div class="gauge" style="background: conic-gradient(#3b82f6 0deg 255.95999999999998deg, #111827 255.95999999999998deg 360deg);">
+                        <div class="gauge-inner">
+                            <div class="gauge-value">71%</div>
+                            <div class="gauge-label">RAM</div>
+                        </div>
+                    </div>
+                    <div class="muted">
+                        11.17 / 15.7 GB in use.
+                    </div>
+                </div>
+
+                <div>
+                    <div class="gauge" style="background: conic-gradient(#f97316 0deg 33.480000000000004deg, #111827 33.480000000000004deg 360deg);">
+                        <div class="gauge-inner">
+                            <div class="gauge-value">9%</div>
+                            <div class="gauge-label">Disk</div>
+                        </div>
+                    </div>
+                    <div class="muted">
+                        88.83 / 952.35 GB used.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pro User Tab -->
+    <div class="tab-content" id="proTab">
+        <div class="grid">
+            <div class="card">
+                <div class="label">CPU Overview</div>
+                <div class="value" style="margin-top:4px;">
+                    25% load • 12 logical cores
+                </div>
+                <div class="muted" style="margin-top:8px;">
+                    Good for spotting spikes during builds, encoding, or gaming.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="label">Memory</div>
+                <div class="value" style="margin-top:4px;">
+                    11.17 / 15.7 GB used (71%)
+                </div>
+                <div class="muted" style="margin-top:8px;">
+                    High usage can cause slowdowns, stutters or app crashes.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="label">Disk</div>
+                <div class="value" style="margin-top:4px;">
+                    88.83 / 952.35 GB used (9%)
+                </div>
+                <div class="muted" style="margin-top:8px;">
+                    Keeping at least 15–20% free is recommended for best performance.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="label">Processes</div>
+                <div class="big-number" style="margin-top:4px;">
+                    308
+                </div>
+                <div class="muted">
+                    Total running processes (services + apps).
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h2>Per-Core CPU Activity</h2>
+            <div class="muted" style="margin-bottom:8px;">
+                Useful to check if workloads are multi-threaded or hammering a single core.
+            </div>
+            
+        <div class="core-row">
+            <span>Core 1</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:19.4%;"></div>
+            </div>
+            <span class="core-pct">19%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 2</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:0.0%;"></div>
+            </div>
+            <span class="core-pct">0%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 3</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:20.3%;"></div>
+            </div>
+            <span class="core-pct">20%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 4</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:0.0%;"></div>
+            </div>
+            <span class="core-pct">0%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 5</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:17.2%;"></div>
+            </div>
+            <span class="core-pct">17%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 6</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:0.0%;"></div>
+            </div>
+            <span class="core-pct">0%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 7</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:1.6%;"></div>
+            </div>
+            <span class="core-pct">2%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 8</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:0.0%;"></div>
+            </div>
+            <span class="core-pct">0%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 9</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:56.9%;"></div>
+            </div>
+            <span class="core-pct">57%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 10</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:33.3%;"></div>
+            </div>
+            <span class="core-pct">33%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 11</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:12.7%;"></div>
+            </div>
+            <span class="core-pct">13%</span>
+        </div>
+        
+        <div class="core-row">
+            <span>Core 12</span>
+            <div class="bar-bg">
+                <div class="bar-fill" style="width:0.0%;"></div>
+            </div>
+            <span class="core-pct">0%</span>
+        </div>
+        
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h2>Network Snapshot</h2>
+            <div class="value" style="margin-top:4px;">
+                ↓ 0.0 Mbps &nbsp;&nbsp; ↑ 0.0 Mbps
+            </div>
+            <div class="muted" style="margin-top:8px;">
+                1-second sample based on OS counters. For full benchmarking, use dedicated tools
+                (e.g. Speedtest) and compare over time.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tab) {
+            const standard = document.getElementById('standardTab');
+            const pro = document.getElementById('proTab');
+            const btnStandard = document.getElementById('btn-standard');
+            const btnPro = document.getElementById('btn-pro');
+
+            if (tab === 'standard') {
+                standard.classList.add('active');
+                pro.classList.remove('active');
+                btnStandard.classList.add('active');
+                btnPro.classList.remove('active');
+            } else {
+                pro.classList.add('active');
+                standard.classList.remove('active');
+                btnPro.classList.add('active');
+                btnStandard.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
