@@ -555,6 +555,23 @@ def build_html_table(eucs):
             gap: 6px;
             flex-wrap: wrap;
         }
+        #range-monitor-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #22c55e;   /* green-ish, you can tweak */
+            color: #0b1120;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none; /* makes link look like a button */
+            display: inline-block;
+        }
+
+        #range-monitor-btn:hover {
+            background: #16a34a;
+        }
+
         #name-search-input {
             padding: 4px 8px;
             border-radius: 999px;
@@ -949,6 +966,12 @@ def build_html_table(eucs):
 
             <div class="selected-actions">
                 <button id="compare-toggle-btn" type="button">Compare EUC</button>
+
+                <!-- NEW BUTTON -->
+                <a id="range-monitor-btn" href="euc_realistic_range.html" target="_blank">
+                    Range Monitor
+                </a>
+
                 <button id="feedback-btn" type="button">
                     What do others say about this wheel?
                 </button>

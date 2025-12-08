@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>EUC Realistic Range & Speed Estimator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050714;
+      --bg-alt: #0b0f24;
+      --panel: #111731;
+      --accent: #35e0ff;
+      --accent-soft: rgba(53, 224, 255, 0.18);
+      --accent-2: #ff4f9a;
+      --text-main: #f6f7ff;
+      --text-muted: #9ea3d1;
+      --danger: #ff6b6b;
+      --ok: #4cd964;
+      --radius-lg: 18px;
+      --shadow-soft: 0 0 30px rgba(0, 0, 0, 0.5);
+      --transition-fast: 0.2s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #171b3f 0, #050714 50%, #020308 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.65));
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .title-group h1 {
+      font-size: 1.6rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .title-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: radial-gradient(circle at left, var(--accent-soft), transparent);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .title-pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.1fr 1.4fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.06), transparent 55%),
+                  var(--panel);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      inset: -50%;
+      background: radial-gradient(circle at top right, rgba(53, 224, 255, 0.08), transparent 65%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .panel-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    h2 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* EUC visual panel */
+    .euc-visual {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .euc-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: conic-gradient(from 210deg, #090c1e, #101932, #171f3a, #090c1e);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 0 20px rgba(53, 224, 255, 0.4);
+    }
+
+    .euc-avatar::after {
+      content: "";
+      position: absolute;
+      inset: 18%;
+      border-radius: 50%;
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+    }
+
+    .euc-core {
+      width: 60px;
+      height: 80px;
+      border-radius: 32px;
+      background: radial-gradient(circle at top, #ffffff, #cacfe8);
+      box-shadow: 0 0 18px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .euc-core::before {
+      content: "";
+      position: absolute;
+      inset: 40% 12%;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #111731, #2b345a);
+    }
+
+    .euc-core::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 28px;
+      border: 2px solid rgba(0, 0, 0, 0.12);
+    }
+
+    .euc-info-main {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .euc-name-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 10px;
+      color: var(--text-main);
+      font-size: 0.9rem;
+    }
+
+    .euc-name-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .spec-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .chip {
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(53, 224, 255, 0.16), rgba(255, 79, 154, 0.14));
+      color: var(--text-main);
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2px 12px;
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .spec-label {
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.7rem;
+    }
+
+    .spec-value {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    /* Chart panel */
+    .chart-group {
+      margin-bottom: 12px;
+    }
+
+    .chart-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .chart-title-row span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .chart-badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 0;
+      font-size: 0.8rem;
+    }
+
+    .bar-label {
+      color: var(--text-muted);
+    }
+
+    .bar-track {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      border-radius: inherit;
+      transition: width var(--transition-fast);
+    }
+
+    .bar-fill.claimed {
+      background: linear-gradient(90deg, rgba(53, 224, 255, 0.4), rgba(53, 224, 255, 0.9));
+    }
+
+    .bar-fill.real {
+      background: linear-gradient(90deg, rgba(255, 79, 154, 0.4), rgba(255, 79, 154, 1));
+    }
+
+    .bar-value {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      color: #f9f9ff;
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .summary-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(53, 224, 255, 0.05), rgba(255, 79, 154, 0.07));
+      font-size: 0.8rem;
+      color: var(--text-main);
+    }
+
+    .summary-line {
+      margin-bottom: 4px;
+    }
+
+    .summary-line strong {
+      color: var(--accent);
+    }
+
+    .summary-status {
+      margin-top: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.38);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-ok {
+      background: var(--ok);
+      box-shadow: 0 0 8px var(--ok);
+    }
+
+    .status-risk {
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+    }
+
+    /* Controls */
+    .controls-panel {
+      margin-top: 10px;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px 14px;
+      margin-top: 10px;
+      font-size: 0.8rem;
+    }
+
+    .control {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    input[type="number"],
+    select {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 6px 9px;
+      background: rgba(7, 9, 24, 0.8);
+      color: var(--text-main);
+      outline: none;
+      font-size: 0.8rem;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(53, 224, 255, 0.4);
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .range-value {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .hint-row {
+      margin-top: 8px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .control-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .control-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title-group">
+        <div class="title-pill">
+          <span class="title-pill-dot"></span>
+          <span>Live simulator · EUC reality check</span>
+        </div>
+        <h1>EUC Realistic Speed & Range Estimator</h1>
+      </div>
+    </header>
+
+    <section class="layout">
+      <!-- Left: EUC visual & headline specs -->
+      <div class="panel">
+        <div class="panel-inner euc-visual">
+          <div class="euc-avatar">
+            <div class="euc-core"></div>
+          </div>
+          <div class="euc-info-main">
+            <input
+              id="wheelName"
+              class="euc-name-input"
+              placeholder="Wheel name (e.g. EX30, Lynx, V13...)"
+            />
+            <div class="spec-chips">
+              <div class="chip">Adjust anything below – everything updates live.</div>
+            </div>
+            <div class="spec-grid">
+              <div>
+                <div class="spec-label">Battery</div>
+                <div class="spec-value">
+                  <span id="specBattery">3600</span> Wh
+                </div>
+              </div>
+              <div>
+                <div class="spec-label">Claimed Range</div>
+                <div class="spec-value"><span id="specClaimedRange">60</span> mi</div>
+              </div>
+              <div>
+                <div class="spec-label">Top Speed</div>
+                <div class="spec-value"><span id="specTopSpeed">45</span> mph</div>
+              </div>
+              <div>
+                <div class="spec-label">Rider</div>
+                <div class="spec-value">
+                  <span id="specRiderWeight">180</span> lb ·
+                  <span id="specRideStyleText">City cruising</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: dynamic charts & summary -->
+      <div class="panel">
+        <div class="panel-inner">
+          <h2>Realistic Output</h2>
+
+          <div class="chart-group">
+            <div class="chart-title-row">
+              <span>Range (miles)</span>
+              <span class="chart-badge">Claimed vs realistic</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Claimed</span>
+              <div class="bar-track">
+                <div class="bar-fill claimed" id="barRangeClaimed"></div>
+                <div class="bar-value" id="labelRangeClaimed"></div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Realistic</span>
+              <div class="bar-track">
+                <div class="bar-fill real" id="barRangeReal"></div>
+                <div class="bar-value" id="labelRangeReal"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-group">
+            <div class="chart-title-row">
+              <span>Speed (mph)</span>
+              <span class="chart-badge">Top vs recommended cruise</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Top</span>
+              <div class="bar-track">
+                <div class="bar-fill claimed" id="barSpeedTop"></div>
+                <div class="bar-value" id="labelSpeedTop"></div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label">Cruise</span>
+              <div class="bar-track">
+                <div class="bar-fill real" id="barSpeedCruise"></div>
+                <div class="bar-value" id="labelSpeedCruise"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-box">
+            <div class="summary-line" id="summaryMain"></div>
+            <div class="summary-line" id="summaryTrip"></div>
+            <div class="summary-status" id="summaryStatus">
+              <span class="status-dot status-ok" id="statusDot"></span>
+              <span id="statusText">Plenty of buffer for your planned ride.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls -->
+    <section class="panel controls-panel">
+      <div class="panel-inner">
+        <h2>Inputs · Specs · Conditions</h2>
+
+        <div class="control-grid">
+          <!-- Wheel specs -->
+          <div class="control">
+            <label for="batteryWh">Battery (Wh)</label>
+            <input id="batteryWh" type="number" min="300" max="6000" step="100" value="3600" />
+          </div>
+
+          <div class="control">
+            <label for="claimedRange">Manufacturer claimed range (mi)</label>
+            <input id="claimedRange" type="number" min="10" max="200" step="1" value="60" />
+          </div>
+
+          <div class="control">
+            <label for="topSpeed">Top speed (mph)</label>
+            <input id="topSpeed" type="number" min="15" max="80" step="1" value="45" />
+          </div>
+
+          <div class="control">
+            <label for="wheelWeight">Wheel weight (lb)</label>
+            <input id="wheelWeight" type="number" min="40" max="120" step="1" value="95" />
+          </div>
+
+          <!-- Rider & ride -->
+          <div class="control">
+            <label for="riderWeight">Rider weight (lb)</label>
+            <input id="riderWeight" type="range" min="100" max="280" step="5" value="180" />
+            <div class="range-value">
+              <span id="riderWeightDisplay">180</span> lb
+            </div>
+          </div>
+
+          <div class="control">
+            <label for="rideStyle">Riding style</label>
+            <select id="rideStyle">
+              <option value="slow">Slow & chill</option>
+              <option value="city" selected>City riding / mixed</option>
+              <option value="longrange">Hyper range mode</option>
+              <option value="speedster">Fast cruising</option>
+              <option value="racing">Racing / constant high speed</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="terrain">Terrain</label>
+            <select id="terrain">
+              <option value="flat" selected>Mostly flat</option>
+              <option value="mixed">Hilly with flats</option>
+              <option value="steep">Very hilly / climbs</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="temperature">Temperature</label>
+            <select id="temperature">
+              <option value="summer" selected>Summer (65–85°F)</option>
+              <option value="shoulder">Spring / Fall (40–65°F)</option>
+              <option value="winter">Winter (&lt; 40°F)</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="tireType">Tire & setup</label>
+            <select id="tireType">
+              <option value="street" selected>Street tire / high pressure</option>
+              <option value="mixed">Mixed / medium pressure</option>
+              <option value="knobby">Knobby / very low pressure</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="wind">Wind</label>
+            <select id="wind">
+              <option value="calm" selected>Calm / light</option>
+              <option value="breezy">Breezy headwind</option>
+              <option value="strong">Strong headwind</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="desiredDistance">Planned ride distance (mi)</label>
+            <input id="desiredDistance" type="number" min="1" max="200" step="1" value="30" />
+          </div>
+
+          <div class="control">
+            <label for="safetyBuffer">Battery buffer you'd like to keep (%)</label>
+            <input id="safetyBuffer" type="number" min="0" max="50" step="5" value="20" />
+          </div>
+        </div>
+
+        <div class="hint-row">
+          All math is based on simple multipliers (weight, style, terrain, temp, wind, tire). It’s not
+          perfect, but it gives a **realistic ballpark** for what your wheel can do today.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Simple multipliers for range and speed based on conditions.
+    const rideStyleFactors = {
+      slow: { range: 1.18, cruise: 0.55 },
+      city: { range: 0.95, cruise: 0.7 },
+      longrange: { range: 1.08, cruise: 0.6 },
+      speedster: { range: 0.75, cruise: 0.78 },
+      racing: { range: 0.6, cruise: 0.85 },
+    };
+
+    const terrainFactors = {
+      flat: { range: 1.0, speed: 1.0 },
+      mixed: { range: 0.87, speed: 0.95 },
+      steep: { range: 0.72, speed: 0.9 },
+    };
+
+    const temperatureFactors = {
+      summer: { range: 1.0, speed: 1.0 },
+      shoulder: { range: 0.9, speed: 0.96 },
+      winter: { range: 0.75, speed: 0.9 },
+    };
+
+    const tireFactors = {
+      street: { range: 1.0 },
+      mixed: { range: 0.94 },
+      knobby: { range: 0.88 },
+    };
+
+    const windFactors = {
+      calm: { range: 1.0 },
+      breezy: { range: 0.9 },
+      strong: { range: 0.78 },
+    };
+
+    function clamp(val, min, max) {
+      return Math.min(Math.max(val, min), max);
+    }
+
+    function calculate() {
+      const wheelName = document.getElementById("wheelName").value.trim();
+
+      const batteryWh = Number(document.getElementById("batteryWh").value) || 0;
+      const claimedRange = Number(document.getElementById("claimedRange").value) || 0;
+      const topSpeed = Number(document.getElementById("topSpeed").value) || 0;
+      const wheelWeight = Number(document.getElementById("wheelWeight").value) || 0;
+
+      const riderWeight = Number(document.getElementById("riderWeight").value) || 0;
+      const rideStyle = document.getElementById("rideStyle").value;
+      const terrain = document.getElementById("terrain").value;
+      const temperature = document.getElementById("temperature").value;
+      const tireType = document.getElementById("tireType").value;
+      const wind = document.getElementById("wind").value;
+
+      const desiredDistance = Number(document.getElementById("desiredDistance").value) || 0;
+      const safetyBuffer = clamp(
+        Number(document.getElementById("safetyBuffer").value) || 0,
+        0,
+        80
+      );
+
+      // Base range: take manufacturer range and gently scale by Wh vs a "reference" 3600 Wh
+      const refWh = 3600;
+      const whScale = batteryWh > 0 ? batteryWh / refWh : 1;
+      const baseRange = claimedRange * whScale;
+
+      // Weight factor: 75 kg reference, sublinear penalty
+      const riderKg = riderWeight * 0.453592;
+      const refKg = 75;
+      let weightFactor = Math.pow(refKg / riderKg, 0.33);
+      weightFactor = clamp(weightFactor, 0.7, 1.25);
+
+      const styleFactor = rideStyleFactors[rideStyle] || rideStyleFactors.city;
+      const terrainFactor = terrainFactors[terrain] || terrainFactors.flat;
+      const tempFactor = temperatureFactors[temperature] || temperatureFactors.summer;
+      const tireFactor = tireFactors[tireType] || tireFactors.street;
+      const windFactor = windFactors[wind] || windFactors.calm;
+
+      // Final realistic range
+      let realisticRange =
+        baseRange *
+        weightFactor *
+        styleFactor.range *
+        terrainFactor.range *
+        tempFactor.range *
+        tireFactor.range *
+        windFactor.range;
+
+      realisticRange = clamp(realisticRange, 5, 250);
+
+      // Recommended cruise speed (sustainable)
+      let cruiseSpeed =
+        topSpeed *
+        styleFactor.cruise *
+        terrainFactor.speed *
+        tempFactor.speed;
+      cruiseSpeed = clamp(cruiseSpeed, 8, topSpeed * 0.9);
+
+      // Update spec badges
+      document.getElementById("specBattery").textContent = batteryWh.toFixed(0);
+      document.getElementById("specClaimedRange").textContent = claimedRange.toFixed(0);
+      document.getElementById("specTopSpeed").textContent = topSpeed.toFixed(0);
+      document.getElementById("specRiderWeight").textContent = riderWeight.toFixed(0);
+
+      const rideStyleTextMap = {
+        slow: "Slow & chill",
+        city: "City cruising",
+        longrange: "Hyper range",
+        speedster: "Fast cruising",
+        racing: "Racing",
+      };
+      document.getElementById("specRideStyleText").textContent =
+        rideStyleTextMap[rideStyle] || "City cruising";
+
+      // Charts: determine max for scale
+      const maxRange = Math.max(claimedRange, realisticRange, 1);
+      const maxSpeed = Math.max(topSpeed, cruiseSpeed, 1);
+
+      const rangeClaimedWidth = (claimedRange / maxRange) * 100;
+      const rangeRealWidth = (realisticRange / maxRange) * 100;
+
+      const speedTopWidth = (topSpeed / maxSpeed) * 100;
+      const speedCruiseWidth = (cruiseSpeed / maxSpeed) * 100;
+
+      document.getElementById("barRangeClaimed").style.width =
+        rangeClaimedWidth.toFixed(1) + "%";
+      document.getElementById("barRangeReal").style.width =
+        rangeRealWidth.toFixed(1) + "%";
+      document.getElementById("barSpeedTop").style.width =
+        speedTopWidth.toFixed(1) + "%";
+      document.getElementById("barSpeedCruise").style.width =
+        speedCruiseWidth.toFixed(1) + "%";
+
+      document.getElementById("labelRangeClaimed").textContent =
+        claimedRange.toFixed(0) + " mi";
+      document.getElementById("labelRangeReal").textContent =
+        realisticRange.toFixed(0) + " mi";
+      document.getElementById("labelSpeedTop").textContent =
+        topSpeed.toFixed(0) + " mph";
+      document.getElementById("labelSpeedCruise").textContent =
+        cruiseSpeed.toFixed(0) + " mph";
+
+      // Summary text
+      const wheelNameDisplay = wheelName || "this wheel";
+
+      document.getElementById("summaryMain").innerHTML =
+        `<strong>${wheelNameDisplay}</strong> with a ${batteryWh.toFixed(
+          0
+        )} Wh pack and ` +
+        `${riderWeight.toFixed(
+          0
+        )} lb rider is expected to get about <strong>${realisticRange.toFixed(
+          0
+        )} miles</strong> ` +
+        `of real-world range at an average cruise of <strong>${cruiseSpeed.toFixed(
+          0
+        )} mph</strong>.`;
+
+      // Trip check
+      let tripText = "";
+      let statusOK = true;
+      if (desiredDistance > 0) {
+        const usedFraction = desiredDistance / realisticRange;
+        const batteryUsedPct = clamp(usedFraction * 100, 0, 200);
+        const batteryLeftPct = clamp(100 - batteryUsedPct, -20, 100);
+
+        const targetEndPct = safetyBuffer;
+        const meetsBuffer = batteryLeftPct >= targetEndPct;
+
+        if (usedFraction <= 1) {
+          tripText =
+            `For your planned <strong>${desiredDistance.toFixed(
+              0
+            )} mi</strong> ride, expect to use about ` +
+            `<strong>${batteryUsedPct.toFixed(
+              0
+            )}%</strong> of the pack, finishing around ` +
+            `<strong>${batteryLeftPct.toFixed(0)}%</strong> battery. `;
+          if (meetsBuffer) {
+            tripText += `That respects your desired <strong>${safetyBuffer}%</strong> safety buffer.`;
+            statusOK = true;
+          } else {
+            tripText +=
+              `That <strong>eats into your ${safetyBuffer}% buffer</strong> — consider slowing down or shortening the route.`;
+            statusOK = false;
+          }
+        } else {
+          const extra = desiredDistance - realisticRange;
+          tripText =
+            `Your planned <strong>${desiredDistance.toFixed(
+              0
+            )} mi</strong> ride is about ` +
+            `<strong>${extra.toFixed(
+              0
+            )} miles</strong> beyond this setup's realistic range. ` +
+            `You’ll almost certainly need a charge stop or second wheel.`;
+          statusOK = false;
+        }
+      } else {
+        tripText = "Set a planned distance to see if your route fits inside this setup’s range.";
+        statusOK = true;
+      }
+
+      document.getElementById("summaryTrip").innerHTML = tripText;
+
+      const statusDot = document.getElementById("statusDot");
+      const statusText = document.getElementById("statusText");
+
+      if (statusOK) {
+        statusDot.classList.remove("status-risk");
+        statusDot.classList.add("status-ok");
+        statusText.textContent = "Plenty of buffer for your planned ride.";
+      } else {
+        statusDot.classList.remove("status-ok");
+        statusDot.classList.add("status-risk");
+        statusText.textContent = "Risky: your plan is pushing the wheel or battery hard.";
+      }
+
+      // Reflect rider weight slider
+      document.getElementById("riderWeightDisplay").textContent =
+        riderWeight.toFixed(0);
+    }
+
+    // Attach listeners
+    window.addEventListener("DOMContentLoaded", () => {
+      const inputs = document.querySelectorAll(
+        "input, select"
+      );
+      inputs.forEach((el) => {
+        el.addEventListener("input", calculate);
+        el.addEventListener("change", calculate);
+      });
+      calculate();
+    });
+  </script>
+</body>
+</html>
