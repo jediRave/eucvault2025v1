@@ -633,7 +633,7 @@
 
         <div class="hint-row">
           All math is based on simple multipliers (weight, style, terrain, temp, wind, tire). It’s not
-          perfect, but it gives a **realistic ballpark** for what your wheel can do today.
+          perfect, but it gives a <strong>realistic ballpark</strong> for what your wheel can do today.
         </div>
       </div>
     </section>
@@ -861,16 +861,78 @@
         riderWeight.toFixed(0);
     }
 
-    // Attach listeners
+    /* ---------- NEW: accept presets from parent or URL ---------- */
+
+    function applyPresetFromObject(preset) {
+      if (!preset || typeof preset !== "object") return;
+
+      function setNum(id, val) {
+        if (typeof val === "number" && !Number.isNaN(val)) {
+          const el = document.getElementById(id);
+          if (el) el.value = String(val);
+        }
+      }
+
+      if (preset.wheelName) {
+        const wn = document.getElementById("wheelName");
+        if (wn) wn.value = preset.wheelName;
+      }
+
+      setNum("batteryWh", preset.batteryWh);
+      setNum("claimedRange", preset.claimedRange);
+      setNum("topSpeed", preset.topSpeed);
+      setNum("wheelWeight", preset.wheelWeight);
+
+      if (typeof preset.riderWeight === "number" && !Number.isNaN(preset.riderWeight)) {
+        const rw = document.getElementById("riderWeight");
+        const rwDisp = document.getElementById("riderWeightDisplay");
+        if (rw) rw.value = String(preset.riderWeight);
+        if (rwDisp) rwDisp.textContent = preset.riderWeight.toFixed(0);
+      }
+
+      // After applying preset, recompute everything
+      calculate();
+    }
+
+    function getPresetFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      if ([...params].length === 0) return null;
+
+      const preset = {};
+      if (params.get("wheelName")) preset.wheelName = params.get("wheelName");
+
+      ["batteryWh", "claimedRange", "topSpeed", "wheelWeight", "riderWeight"].forEach((key) => {
+        const v = params.get(key);
+        if (v !== null && v !== "") {
+          const n = parseFloat(v);
+          if (!Number.isNaN(n)) preset[key] = n;
+        }
+      });
+
+      return preset;
+    }
+
+    // Listen for messages from parent page (iframe case)
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data || data.type !== "EUC_RANGE_SYNC") return;
+      applyPresetFromObject(data.payload || {});
+    });
+
+    // Attach listeners & apply presets on load
     window.addEventListener("DOMContentLoaded", () => {
-      const inputs = document.querySelectorAll(
-        "input, select"
-      );
+      const inputs = document.querySelectorAll("input, select");
       inputs.forEach((el) => {
         el.addEventListener("input", calculate);
         el.addEventListener("change", calculate);
       });
-      calculate();
+
+      const presetFromUrl = getPresetFromQuery();
+      if (presetFromUrl) {
+        applyPresetFromObject(presetFromUrl);
+      } else {
+        calculate();
+      }
     });
   </script>
 </body>

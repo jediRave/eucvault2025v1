@@ -564,7 +564,7 @@ def build_html_table(eucs):
             font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
-            text-decoration: none; /* makes link look like a button */
+            text-decoration: none;
             display: inline-block;
         }
 
@@ -883,6 +883,67 @@ def build_html_table(eucs):
             padding: 6px 0;
             border-bottom: 1px solid #020617;
         }
+
+        /* Range Monitor modal */
+        .range-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+        }
+        .range-modal {
+            background: #020617;
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+            max-width: 1100px;
+            width: 95%;
+            max-height: 80vh;
+            padding: 12px 14px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .range-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .range-modal-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .range-close-btn {
+            border: none;
+            background: #111827;
+            color: #e5e7eb;
+            border-radius: 999px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .range-close-btn:hover {
+            background: #1f2937;
+        }
+        .range-modal-body {
+            flex: 1;
+            min-height: 480px;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid #111827;
+        }
+        .range-modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #020617;
+        }
     </style>
 </head>
 <body>
@@ -967,10 +1028,10 @@ def build_html_table(eucs):
             <div class="selected-actions">
                 <button id="compare-toggle-btn" type="button">Compare EUC</button>
 
-                <!-- NEW BUTTON -->
-                <a id="range-monitor-btn" href="euc_realistic_range.html" target="_blank">
+                <!-- Range Monitor now opens in a popup modal -->
+                <button id="range-monitor-btn" type="button">
                     Range Monitor
-                </a>
+                </button>
 
                 <button id="feedback-btn" type="button">
                     What do others say about this wheel?
@@ -1067,6 +1128,20 @@ def build_html_table(eucs):
     </div>
 </div>
 
+<!-- RANGE MONITOR MODAL -->
+<div class="range-modal-overlay" id="range-overlay">
+    <div class="range-modal">
+        <div class="range-modal-header">
+            <div class="range-modal-title">Range Monitor</div>
+            <button class="range-close-btn" id="range-close-btn" type="button">✕</button>
+        </div>
+        <div class="range-modal-body">
+            <!-- src is set in JS on first open -->
+            <iframe id="range-iframe" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+</div>
+
 <script>
     let compareMode = false;
     let currentSource = "__FIRST_SOURCE__";  // "ewheels", "alien", or "nextgen"
@@ -1135,6 +1210,36 @@ def build_html_table(eucs):
 
     function closeFeedbackModal() {
         const overlay = document.getElementById('feedback-overlay');
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function openRangeModal() {
+        const overlay = document.getElementById('range-overlay');
+        const iframe  = document.getElementById('range-iframe');
+        if (!overlay || !iframe) return;
+
+        const isHttp = (location.protocol === 'http:' || location.protocol === 'https:');
+
+        if (isHttp) {
+            // When served over HTTP(S), load inside the iframe (once)
+            if (!iframe.dataset.loaded) {
+                iframe.src = 'euc_realistic_range.html';  // relative to euc_table.html
+                iframe.dataset.loaded = '1';
+            }
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } else {
+            // When opened as file://, browsers often block file->file iframe loads.
+            // Fallback: open the Range Monitor page in a new tab/window.
+            window.open('euc_realistic_range.html', '_blank');
+        }
+    }
+
+    function closeRangeModal() {
+        const overlay = document.getElementById('range-overlay');
+        if (!overlay) return;
+
         overlay.style.display = 'none';
         document.body.style.overflow = '';
     }
@@ -1589,6 +1694,32 @@ def build_html_table(eucs):
             feedbackCloseBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 closeFeedbackModal();
+            });
+        }
+
+        // Range Monitor popup
+        const rangeBtn = document.getElementById('range-monitor-btn');
+        if (rangeBtn) {
+            rangeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openRangeModal();
+            });
+        }
+
+        const rangeOverlay = document.getElementById('range-overlay');
+        if (rangeOverlay) {
+            rangeOverlay.addEventListener('click', function(e) {
+                if (e.target === rangeOverlay) {
+                    closeRangeModal();
+                }
+            });
+        }
+
+        const rangeCloseBtn = document.getElementById('range-close-btn');
+        if (rangeCloseBtn) {
+            rangeCloseBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeRangeModal();
             });
         }
 

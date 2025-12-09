@@ -564,7 +564,7 @@ def build_html_table(eucs):
             font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
-            text-decoration: none; /* makes link look like a button */
+            text-decoration: none;
             display: inline-block;
         }
 
@@ -788,7 +788,7 @@ def build_html_table(eucs):
             gap: 20px;
             align-items: stretch;
             background: #020617;
-            border: 1px solid #1f2937;
+            border: 1f2937;
             border-radius: 12px;
             padding: 16px;
             margin-top: 12px;
@@ -883,6 +883,67 @@ def build_html_table(eucs):
             padding: 6px 0;
             border-bottom: 1px solid #020617;
         }
+
+        /* Range Monitor modal */
+        .range-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+        }
+        .range-modal {
+            background: #020617;
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+            max-width: 1100px;
+            width: 95%;
+            max-height: 80vh;
+            padding: 12px 14px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .range-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .range-modal-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .range-close-btn {
+            border: none;
+            background: #111827;
+            color: #e5e7eb;
+            border-radius: 999px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .range-close-btn:hover {
+            background: #1f2937;
+        }
+        .range-modal-body {
+            flex: 1;
+            min-height: 480px;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid #111827;
+        }
+        .range-modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #020617;
+        }
     </style>
 </head>
 <body>
@@ -967,10 +1028,10 @@ def build_html_table(eucs):
             <div class="selected-actions">
                 <button id="compare-toggle-btn" type="button">Compare EUC</button>
 
-                <!-- NEW BUTTON -->
-                <a id="range-monitor-btn" href="euc_realistic_range.html" target="_blank">
+                <!-- Range Monitor button -->
+                <button id="range-monitor-btn" type="button">
                     Range Monitor
-                </a>
+                </button>
 
                 <button id="feedback-btn" type="button">
                     What do others say about this wheel?
@@ -1067,9 +1128,32 @@ def build_html_table(eucs):
     </div>
 </div>
 
+<!-- RANGE MONITOR MODAL -->
+<div class="range-modal-overlay" id="range-overlay">
+    <div class="range-modal">
+        <div class="range-modal-header">
+            <div class="range-modal-title">Range Monitor</div>
+            <button class="range-close-btn" id="range-close-btn" type="button">✕</button>
+        </div>
+        <div class="range-modal-body">
+            <!-- src is set in JS on first open -->
+            <iframe id="range-iframe" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+</div>
+
 <script>
     let compareMode = false;
     let currentSource = "__FIRST_SOURCE__";  // "ewheels", "alien", or "nextgen"
+
+    // holds the currently selected wheel data (full, for UI)
+    let currentWheelPayload = null;
+
+    // numeric preset for the Range Monitor page
+    let currentRangePreset = null;
+
+    // Will hold a reference to the external window (file:// fallback)
+    let rangeMonitorWindow = null;
 
     const FEEDBACK_DATA = {
         "Begode A1": [
@@ -1139,6 +1223,200 @@ def build_html_table(eucs):
         document.body.style.overflow = '';
     }
 
+    // ------------- numeric parsing helpers (for Range Monitor preset) -------------
+
+    function parseFirstNumber(str) {
+        if (!str) return null;
+        const nums = String(str).match(/(\d+(\.\d+)?)/g);
+        if (!nums || !nums.length) return null;
+        return parseFloat(nums[0]);
+    }
+
+    function parseLargestNumber(str) {
+        if (!str) return null;
+        const nums = String(str).match(/(\d+(\.\d+)?)/g);
+        if (!nums || !nums.length) return null;
+        return nums
+            .map(parseFloat)
+            .filter(v => !Number.isNaN(v))
+            .reduce((a, b) => Math.max(a, b), -Infinity);
+    }
+
+    function parseBatteryWh(batteryStr) {
+        if (!batteryStr) return 3600; // fallback
+        const m = batteryStr.match(/(\d[\\d,]*)\\s*Wh/i);
+        if (m) {
+            return parseInt(m[1].replace(/,/g, ""), 10);
+        }
+        const n = parseFirstNumber(batteryStr);
+        return n || 3600;
+    }
+
+    function parseRangeMiles(rangeStr) {
+        if (!rangeStr) return 40;
+        const nums = String(rangeStr).match(/(\\d+(\\.\\d+)?)/g);
+        if (!nums || !nums.length) return 40;
+
+        const values = nums.map(parseFloat).filter(v => !Number.isNaN(v));
+        if (!values.length) return 40;
+
+        // If two numbers with dash / "to" → average
+        if (values.length === 2 && /-|–|to/i.test(rangeStr)) {
+            return (values[0] + values[1]) / 2;
+        }
+
+        // Else largest number
+        const max = values.reduce((a, b) => Math.max(a, b), values[0]);
+        return max;
+    }
+
+    function parseSpeedMph(speedStr) {
+        if (!speedStr) return 30;
+
+        const mphMatches = [];
+        const re = /(\\d+(\\.\\d+)?)\\s*mph/gi;
+        let m;
+        while ((m = re.exec(speedStr)) !== null) {
+            mphMatches.push(parseFloat(m[1]));
+        }
+        if (mphMatches.length) {
+            return mphMatches.reduce((a, b) => Math.max(a, b), mphMatches[0]);
+        }
+
+        const n = parseLargestNumber(speedStr);
+        return n || 30;
+    }
+
+    function parseWeightLbs(weightStr) {
+        if (!weightStr) return 90;
+
+        const re = /(\\d+(\\.\\d+)?)\\s*(lb|lbs)/gi;
+        const matches = [];
+        let m;
+        while ((m = re.exec(weightStr)) !== null) {
+            matches.push(parseFloat(m[1]));
+        }
+        if (matches.length) {
+            return matches.reduce((a, b) => Math.max(a, b), matches[0]);
+        }
+
+        const n = parseLargestNumber(weightStr);
+        return n || 90;
+    }
+
+    // NEW: build an object that represents the currently selected EUC (full)
+    function buildWheelPayloadFromRow(row) {
+        if (!row) return null;
+        return {
+            name: row.dataset.name || 'N/A',
+            battery: row.dataset.battery || 'N/A',
+            range: row.dataset.range || 'N/A',
+            speed: row.dataset.speed || 'N/A',
+            motor: row.dataset.motor || 'N/A',
+            weight: row.dataset.weight || 'N/A',
+            maxload: row.dataset.maxload || 'N/A',
+            battype: row.dataset.battype || 'N/A',
+            source: row.dataset.source || 'ewheels',
+            url: row.dataset.url || '#'
+        };
+    }
+
+    // NEW: numeric preset for the Range Monitor page
+    function buildRangePresetFromRow(row) {
+        if (!row) return null;
+
+        const name    = row.dataset.name   || 'N/A';
+        const battery = row.dataset.battery || '';
+        const range   = row.dataset.range   || '';
+        const speed   = row.dataset.speed   || '';
+        const weight  = row.dataset.weight  || '';
+
+        const batteryWh    = parseBatteryWh(battery);
+        const claimedRange = parseRangeMiles(range);
+        const topSpeed     = parseSpeedMph(speed);
+        const wheelWeight  = parseWeightLbs(weight);
+
+        // Rider weight is a user thing; we just give a sane default
+        const riderWeight  = 180;
+
+        return {
+            wheelName: name,
+            batteryWh: batteryWh,
+            claimedRange: claimedRange,
+            topSpeed: topSpeed,
+            wheelWeight: wheelWeight,
+            riderWeight: riderWeight
+        };
+    }
+
+    // NEW: send the current wheel preset to the Range Monitor (iframe or external window)
+    function sendWheelToRangeMonitor() {
+        if (!currentRangePreset) return;
+
+        const message = {
+            type: "EUC_RANGE_SYNC",
+            payload: currentRangePreset
+        };
+
+        const iframe = document.getElementById('range-iframe');
+
+        // If the iframe exists and is loaded, use postMessage
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(message, "*");
+        }
+
+        // Also try posting to the external window (file:// fallback)
+        if (rangeMonitorWindow && !rangeMonitorWindow.closed) {
+            rangeMonitorWindow.postMessage(message, "*");
+        }
+    }
+
+    function openRangeModal() {
+        const overlay = document.getElementById('range-overlay');
+        const iframe  = document.getElementById('range-iframe');
+        if (!overlay || !iframe) return;
+
+        const isHttp = (location.protocol === 'http:' || location.protocol === 'https:');
+
+        if (isHttp) {
+            // When served over HTTP(S), load inside the iframe (once)
+            if (!iframe.dataset.loaded) {
+                iframe.src = 'euc_realistic_range.html';  // relative to euc_table.html
+                iframe.dataset.loaded = '1';
+
+                // Once the Range Monitor is loaded, send the current wheel
+                iframe.addEventListener('load', function onLoad() {
+                    iframe.removeEventListener('load', onLoad);
+                    sendWheelToRangeMonitor();
+                });
+            } else {
+                // Already loaded, just send the current wheel
+                sendWheelToRangeMonitor();
+            }
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } else {
+            // file:// fallback
+            rangeMonitorWindow = window.open('euc_realistic_range.html', 'EUC_RangeMonitor');
+
+            setTimeout(function() {
+                try {
+                    sendWheelToRangeMonitor();
+                } catch (err) {
+                    // ignore if window not ready
+                }
+            }, 700);
+        }
+    }
+
+    function closeRangeModal() {
+        const overlay = document.getElementById('range-overlay');
+        if (!overlay) return;
+
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
     function siteLabelForSource(source) {
         if (source === 'alien') return 'Alien Rides';
         if (source === 'nextgen') return 'NextGen M';
@@ -1201,6 +1479,10 @@ def build_html_table(eucs):
             div.textContent = 'No image available';
             imgBox.appendChild(div);
         }
+
+        // update globals for Range Monitor + other use
+        currentWheelPayload = buildWheelPayloadFromRow(row);
+        currentRangePreset  = buildRangePresetFromRow(row);
     }
 
     function updateCompareBanner(row) {
@@ -1322,6 +1604,8 @@ def build_html_table(eucs):
             if (desc) {
                 desc.textContent = 'No wheels found for this distributor.';
             }
+            currentWheelPayload = null;
+            currentRangePreset  = null;
         }
     }
 
@@ -1592,6 +1876,32 @@ def build_html_table(eucs):
             });
         }
 
+        // Range Monitor popup
+        const rangeBtn = document.getElementById('range-monitor-btn');
+        if (rangeBtn) {
+            rangeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openRangeModal();
+            });
+        }
+
+        const rangeOverlay = document.getElementById('range-overlay');
+        if (rangeOverlay) {
+            rangeOverlay.addEventListener('click', function(e) {
+                if (e.target === rangeOverlay) {
+                    closeRangeModal();
+                }
+            });
+        }
+
+        const rangeCloseBtn = document.getElementById('range-close-btn');
+        if (rangeCloseBtn) {
+            rangeCloseBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeRangeModal();
+            });
+        }
+
         // Distributor buttons – switch data sets in-place
         document.querySelectorAll('.topbar-link').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1664,7 +1974,7 @@ def main():
 
     html_page = build_html_table(eucs)
     out_file = "euc_table.html"
-    with open(out_file, "w", encoding="utf-8") as f:
+    with open(out_file, "w", encoding="utf-8") as f:    
         f.write(html_page)
 
     full_path = os.path.realpath(out_file)
