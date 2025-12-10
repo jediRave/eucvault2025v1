@@ -32,9 +32,147 @@
       background: radial-gradient(circle at top, #171b3f 0, #050714 50%, #020308 100%);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 16px;
+      padding: 16px 16px 24px 16px;
     }
 
+    /* ===== Top menu bar (same style as main page) ===== */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: #020617;
+      border-bottom: 1px solid #1f2937;
+      overflow: visible;
+      margin: -16px -16px 12px -16px; /* stretch to viewport edges */
+    }
+
+    .topbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .topbar-left {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #e5e7eb;
+      white-space: nowrap;
+    }
+
+    .logo-overhang {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .navbar-logo {
+      height: 40px;
+      width: auto;
+      display: block;
+    }
+
+    .topbar-title {
+      margin-left: 8px;
+      font-size: 0.95rem;
+    }
+
+    .topbar-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: #e5e7eb;
+      background: #0f172a;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .topbar-link-active {
+      background: #0ea5e9;
+      color: #f9fafb;
+    }
+
+    .topbar-link-pill {
+      opacity: 0.8;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-search {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    #topbar-name-input {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      min-width: 160px;
+    }
+
+    #topbar-name-select {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      max-width: 220px;
+    }
+
+    #topbar-search-btn {
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: #22c55e;
+      color: #0b1120;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      .topbar-inner {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .topbar-left {
+        margin-bottom: 4px;
+      }
+    }
+
+    /* ===== Existing app layout ===== */
     .app {
       max-width: 1200px;
       margin: 0 auto;
@@ -436,6 +574,36 @@
   </style>
 </head>
 <body>
+
+  <!-- Top menu bar (navigation + search back to main EUC Vault page) -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+        <div class="logo-overhang">
+          <img src="EUCVault_Logo.png" class="navbar-logo" alt="EUC Vault Logo">
+        </div>
+        <div class="topbar-title">Range Monitor</div>
+      </div>
+      <div class="topbar-links">
+        <button class="topbar-link" type="button" id="topbar-home-btn">
+          EUC Vault
+        </button>
+        <span class="topbar-link topbar-link-active topbar-link-pill">
+          Range Monitor
+        </span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search">
+          <input id="topbar-name-input" type="text" placeholder="Search wheel name..." />
+          <select id="topbar-name-select">
+            <option value="">(optional) wheel name…</option>
+          </select>
+          <button id="topbar-search-btn" type="button">Search</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="app">
     <header>
       <div class="title-group">
@@ -1006,6 +1174,32 @@
         applyPresetFromObject(presetFromUrl);
       } else {
         calculate();
+      }
+
+      // ----- Top menu bar behavior -----
+      const homeBtn = document.getElementById("topbar-home-btn");
+      if (homeBtn) {
+        homeBtn.addEventListener("click", () => {
+          // open main EUC Vault table in a new tab
+          window.open("euc_table.html", "_blank");
+        });
+      }
+
+      const searchBtn = document.getElementById("topbar-search-btn");
+      if (searchBtn) {
+        searchBtn.addEventListener("click", () => {
+          const input = document.getElementById("topbar-name-input");
+          const select = document.getElementById("topbar-name-select");
+          const textVal = (input && input.value.trim()) || "";
+          const selectVal = (select && select.value.trim()) || "";
+          const term = selectVal || textVal;
+
+          let url = "euc_table.html";
+          if (term) {
+            url += "?search=" + encodeURIComponent(term);
+          }
+          window.open(url, "_blank");
+        });
       }
     });
   </script>

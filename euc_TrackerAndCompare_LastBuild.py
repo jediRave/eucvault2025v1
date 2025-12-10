@@ -1244,7 +1244,7 @@ def build_html_table(eucs):
 
     function parseBatteryWh(batteryStr) {
         if (!batteryStr) return 3600; // fallback
-        const m = batteryStr.match(/(\d[\\d,]*)\\s*Wh/i);
+        const m = batteryStr.match(/(\d[\d,]*)\s*Wh/i);
         if (m) {
             return parseInt(m[1].replace(/,/g, ""), 10);
         }
@@ -1254,7 +1254,7 @@ def build_html_table(eucs):
 
     function parseRangeMiles(rangeStr) {
         if (!rangeStr) return 40;
-        const nums = String(rangeStr).match(/(\\d+(\\.\\d+)?)/g);
+        const nums = String(rangeStr).match(/(\d+(\.\d+)?)/g);
         if (!nums || !nums.length) return 40;
 
         const values = nums.map(parseFloat).filter(v => !Number.isNaN(v));
@@ -1274,7 +1274,7 @@ def build_html_table(eucs):
         if (!speedStr) return 30;
 
         const mphMatches = [];
-        const re = /(\\d+(\\.\\d+)?)\\s*mph/gi;
+        const re = /(\d+(\.\d+)?)\s*mph/gi;
         let m;
         while ((m = re.exec(speedStr)) !== null) {
             mphMatches.push(parseFloat(m[1]));
@@ -1290,7 +1290,7 @@ def build_html_table(eucs):
     function parseWeightLbs(weightStr) {
         if (!weightStr) return 90;
 
-        const re = /(\\d+(\\.\\d+)?)\\s*(lb|lbs)/gi;
+        const re = /(\d+(\.\d+)?)\s*(lb|lbs)/gi;
         const matches = [];
         let m;
         while ((m = re.exec(weightStr)) !== null) {
@@ -1321,7 +1321,7 @@ def build_html_table(eucs):
         };
     }
 
-    // NEW: numeric preset for the Range Monitor page
+    // UPDATED: numeric preset for the Range Monitor page, including imageUrl
     function buildRangePresetFromRow(row) {
         if (!row) return null;
 
@@ -1330,6 +1330,7 @@ def build_html_table(eucs):
         const range   = row.dataset.range   || '';
         const speed   = row.dataset.speed   || '';
         const weight  = row.dataset.weight  || '';
+        const image   = row.dataset.image   || '';
 
         const batteryWh    = parseBatteryWh(battery);
         const claimedRange = parseRangeMiles(range);
@@ -1345,7 +1346,9 @@ def build_html_table(eucs):
             claimedRange: claimedRange,
             topSpeed: topSpeed,
             wheelWeight: wheelWeight,
-            riderWeight: riderWeight
+            riderWeight: riderWeight,
+            // this is what the Range Monitor page will use to show the wheel image
+            imageUrl: image
         };
     }
 
@@ -1658,26 +1661,26 @@ def build_html_table(eucs):
         doc.write('<style>');
         doc.write('body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#020617;color:#e5e7eb;margin:0;padding:0;}');
         doc.write('.topbar{position:sticky;top:0;z-index:40;background:#020617;border-bottom:1px solid #1f2937;overflow:visible;}');
-        doc.write('.topbar-inner{max-width:1200px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}');
+        doc.write('.topbar-inner{max-width:1200px;margin:0 auto;padding:10px20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}');
         doc.write('.topbar-left{position:relative;display:flex;align-items:center;gap:8px;font-size:0.95rem;font-weight:600;color:#e5e7eb;white-space:nowrap;}');
         doc.write('.logo-overhang{position:absolute;left:0;bottom:-35px;}');
         doc.write('.navbar-logo{height:64px;width:auto;display:block;}');
         doc.write('.topbar-title{margin-left:80px;}');
         doc.write('.topbar-links{display:flex;align-items:center;gap:10px;}');
-        doc.write('.topbar-link{display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border-radius:999px;border:1px solid #1f2937;font-size:0.85rem;font-weight:600;text-decoration:none;color:#e5e7eb;background:#0f172a;white-space:nowrap;cursor:pointer;}');
+        doc.write('.topbar-link{display:inline-flex;align-items:center;justify-content:center;padding:6px14px;border-radius:999px;border:1pxsolid#1f2937;font-size:0.85rem;font-weight:600;text-decoration:none;color:#e5e7eb;background:#0f172a;white-space:nowrap;cursor:pointer;}');
         doc.write('.topbar-link-active{background:#0ea5e9;color:#f9fafb;opacity:1;}');
         doc.write('.topbar-home-btn{background:#111827;color:#e5e7eb;}');
         doc.write('.topbar-home-btn:hover{background:#1f2937;}');
         doc.write('.topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}');
         doc.write('.topbar-search{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}');
-        doc.write('#name-search-input{padding:4px 8px;border-radius:999px;border:1px solid #1f2937;background:#020617;color:#e5e7eb;font-size:0.8rem;min-width:160px;}');
-        doc.write('#name-search-select{padding:4px 8px;border-radius:999px;border:1px solid #1f2937;background:#020617;color:#e5e7eb;font-size:0.8rem;max-width:220px;}');
-        doc.write('#name-search-btn{padding:5px 12px;border-radius:999px;border:1px solid #1f2937;background:#22c55e;color:#0b1120;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;}');
-        doc.write('.container{max-width:1200px;margin:0 auto;padding:20px;}');
+        doc.write('#name-search-input{padding:4px8px;border-radius:999px;border:1pxsolid#1f2937;background:#020617;color:#e5e7eb;font-size:0.8rem;min-width:160px;}');
+        doc.write('#name-search-select{padding:4px8px;border-radius:999px;border:1pxsolid#1f2937;background:#020617;color:#e5e7eb;font-size:0.8rem;max-width:220px;}');
+        doc.write('#name-search-btn{padding:5px12px;border-radius:999px;border:1pxsolid#1f2937;background:#22c55e;color:#0b1120;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;}');
+        doc.write('.container{max-width:1200px;margin:0auto;padding:20px;}');
         doc.write('h1{color:#38bdf8;margin-top:8px;}');
         doc.write('.subtitle{color:#9ca3af;margin-bottom:1rem;font-size:0.9rem;}');
         doc.write('table{border-collapse:collapse;width:100%;margin-top:1rem;font-size:0.9rem;}');
-        doc.write('th,td{border:1px solid #1f2937;padding:8px 10px;text-align:left;}');
+        doc.write('th,td{border:1pxsolid#1f2937;padding:8px10px;text-align:left;}');
         doc.write('th{background:#0f172a;}');
         doc.write('tr:nth-child(even){background:#020617;}');
         doc.write('tr:nth-child(odd){background:#020617;}');

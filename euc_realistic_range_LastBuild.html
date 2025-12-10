@@ -137,6 +137,7 @@
       justify-content: center;
       position: relative;
       box-shadow: 0 0 20px rgba(53, 224, 255, 0.4);
+      overflow: hidden;
     }
 
     .euc-avatar::after {
@@ -171,6 +172,17 @@
       inset: 4px;
       border-radius: 28px;
       border: 2px solid rgba(0, 0, 0, 0.12);
+    }
+
+    /* The real wheel image that gets ported in */
+    .euc-image {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 0 16px rgba(0, 0, 0, 0.7);
+      pointer-events: none;
     }
 
     .euc-info-main {
@@ -440,7 +452,10 @@
       <div class="panel">
         <div class="panel-inner euc-visual">
           <div class="euc-avatar">
+            <!-- default abstract wheel core -->
             <div class="euc-core"></div>
+            <!-- real wheel image when provided -->
+            <img id="wheelImage" class="euc-image" alt="Wheel image" style="display:none;" />
           </div>
           <div class="euc-info-main">
             <input
@@ -698,6 +713,19 @@
       return Math.min(Math.max(val, min), max);
     }
 
+    function setWheelImage(url) {
+      const img = document.getElementById("wheelImage");
+      if (!img) return;
+
+      if (url && typeof url === "string") {
+        img.src = url;
+        img.style.display = "block";
+      } else {
+        img.removeAttribute("src");
+        img.style.display = "none";
+      }
+    }
+
     function calculate() {
       const wheelName = document.getElementById("wheelName").value.trim();
 
@@ -908,6 +936,12 @@
         if (wn) wn.value = preset.wheelName;
       }
 
+      // wheel image: accept imageUrl or image_url keys
+      const imgUrl = preset.imageUrl || preset.image_url;
+      if (imgUrl) {
+        setWheelImage(imgUrl);
+      }
+
       setNum("batteryWh", preset.batteryWh);
       setNum("claimedRange", preset.claimedRange);
       setNum("topSpeed", preset.topSpeed);
@@ -934,6 +968,12 @@
       const preset = {};
       if (params.get("wheelName")) preset.wheelName = params.get("wheelName");
       if (params.get("rideStyle")) preset.rideStyle = params.get("rideStyle");
+
+      // image URL from query (?imageUrl=... or ?image_url=...)
+      const imgUrl = params.get("imageUrl") || params.get("image_url");
+      if (imgUrl) {
+        preset.imageUrl = imgUrl;
+      }
 
       ["batteryWh", "claimedRange", "topSpeed", "wheelWeight", "riderWeight"].forEach((key) => {
         const v = params.get(key);
