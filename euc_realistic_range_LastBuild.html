@@ -576,12 +576,25 @@
           <div class="control">
             <label for="rideStyle">Riding style</label>
             <select id="rideStyle">
-              <option value="slow">Slow & chill</option>
-              <option value="city" selected>City riding / mixed</option>
-              <option value="longrange">Hyper range mode</option>
-              <option value="speedster">Fast cruising</option>
-              <option value="racing">Racing / constant high speed</option>
+              <option value="slow">
+                Slow &amp; chill · ~50–60% of top speed
+              </option>
+              <option value="city" selected>
+                City riding / mixed · ~65–75% of top speed
+              </option>
+              <option value="longrange">
+                Hyper range mode · ~55–65% of top speed, very gentle
+              </option>
+              <option value="speedster">
+                Fast cruising · ~75–80% of top speed
+              </option>
+              <option value="racing">
+                Racing / constant high speed · ~80–90% of top speed, hard pushes
+              </option>
             </select>
+            <div class="range-value" id="rideStyleHint">
+              Balanced city / mixed ride, ~65–75% of top speed.
+            </div>
           </div>
 
           <div class="control">
@@ -633,7 +646,7 @@
 
         <div class="hint-row">
           All math is based on simple multipliers (weight, style, terrain, temp, wind, tire). It’s not
-          perfect, but it gives a **realistic ballpark** for what your wheel can do today.
+          perfect, but it gives a <strong>realistic ballpark</strong> for what your wheel can do today.
         </div>
       </div>
     </section>
@@ -642,34 +655,42 @@
   <script>
     // Simple multipliers for range and speed based on conditions.
     const rideStyleFactors = {
-      slow: { range: 1.18, cruise: 0.55 },
-      city: { range: 0.95, cruise: 0.7 },
-      longrange: { range: 1.08, cruise: 0.6 },
+      slow:      { range: 1.18, cruise: 0.55 },
+      city:      { range: 0.95, cruise: 0.7  },
+      longrange: { range: 1.08, cruise: 0.6  },
       speedster: { range: 0.75, cruise: 0.78 },
-      racing: { range: 0.6, cruise: 0.85 },
+      racing:    { range: 0.6,  cruise: 0.85 },
+    };
+
+    const rideStyleDescriptions = {
+      slow:      "Relaxed cruising, ~50–60% of top speed.",
+      city:      "Balanced city / mixed ride, ~65–75% of top speed.",
+      longrange: "Hyper range mode, ~55–65% of top speed, very gentle.",
+      speedster: "Fast cruising, ~75–80% of top speed.",
+      racing:    "Racing / constant high speed, ~80–90% of top speed, hard pushes.",
     };
 
     const terrainFactors = {
-      flat: { range: 1.0, speed: 1.0 },
+      flat:  { range: 1.0,  speed: 1.0  },
       mixed: { range: 0.87, speed: 0.95 },
-      steep: { range: 0.72, speed: 0.9 },
+      steep: { range: 0.72, speed: 0.9  },
     };
 
     const temperatureFactors = {
-      summer: { range: 1.0, speed: 1.0 },
-      shoulder: { range: 0.9, speed: 0.96 },
-      winter: { range: 0.75, speed: 0.9 },
+      summer:   { range: 1.0,  speed: 1.0  },
+      shoulder: { range: 0.9,  speed: 0.96 },
+      winter:   { range: 0.75, speed: 0.9  },
     };
 
     const tireFactors = {
-      street: { range: 1.0 },
-      mixed: { range: 0.94 },
+      street: { range: 1.0  },
+      mixed:  { range: 0.94 },
       knobby: { range: 0.88 },
     };
 
     const windFactors = {
-      calm: { range: 1.0 },
-      breezy: { range: 0.9 },
+      calm:   { range: 1.0  },
+      breezy: { range: 0.9  },
       strong: { range: 0.78 },
     };
 
@@ -680,17 +701,17 @@
     function calculate() {
       const wheelName = document.getElementById("wheelName").value.trim();
 
-      const batteryWh = Number(document.getElementById("batteryWh").value) || 0;
+      const batteryWh    = Number(document.getElementById("batteryWh").value)    || 0;
       const claimedRange = Number(document.getElementById("claimedRange").value) || 0;
-      const topSpeed = Number(document.getElementById("topSpeed").value) || 0;
-      const wheelWeight = Number(document.getElementById("wheelWeight").value) || 0;
+      const topSpeed     = Number(document.getElementById("topSpeed").value)     || 0;
+      const wheelWeight  = Number(document.getElementById("wheelWeight").value)  || 0;
 
       const riderWeight = Number(document.getElementById("riderWeight").value) || 0;
-      const rideStyle = document.getElementById("rideStyle").value;
-      const terrain = document.getElementById("terrain").value;
+      const rideStyle   = document.getElementById("rideStyle").value;
+      const terrain     = document.getElementById("terrain").value;
       const temperature = document.getElementById("temperature").value;
-      const tireType = document.getElementById("tireType").value;
-      const wind = document.getElementById("wind").value;
+      const tireType    = document.getElementById("tireType").value;
+      const wind        = document.getElementById("wind").value;
 
       const desiredDistance = Number(document.getElementById("desiredDistance").value) || 0;
       const safetyBuffer = clamp(
@@ -700,21 +721,21 @@
       );
 
       // Base range: take manufacturer range and gently scale by Wh vs a "reference" 3600 Wh
-      const refWh = 3600;
+      const refWh   = 3600;
       const whScale = batteryWh > 0 ? batteryWh / refWh : 1;
       const baseRange = claimedRange * whScale;
 
       // Weight factor: 75 kg reference, sublinear penalty
       const riderKg = riderWeight * 0.453592;
-      const refKg = 75;
+      const refKg   = 75;
       let weightFactor = Math.pow(refKg / riderKg, 0.33);
       weightFactor = clamp(weightFactor, 0.7, 1.25);
 
-      const styleFactor = rideStyleFactors[rideStyle] || rideStyleFactors.city;
-      const terrainFactor = terrainFactors[terrain] || terrainFactors.flat;
-      const tempFactor = temperatureFactors[temperature] || temperatureFactors.summer;
-      const tireFactor = tireFactors[tireType] || tireFactors.street;
-      const windFactor = windFactors[wind] || windFactors.calm;
+      const styleFactor   = rideStyleFactors[rideStyle] || rideStyleFactors.city;
+      const terrainFactor = terrainFactors[terrain]     || terrainFactors.flat;
+      const tempFactor    = temperatureFactors[temperature] || temperatureFactors.summer;
+      const tireFactor    = tireFactors[tireType]       || tireFactors.street;
+      const windFactor    = windFactors[wind]           || windFactors.calm;
 
       // Final realistic range
       let realisticRange =
@@ -737,29 +758,38 @@
       cruiseSpeed = clamp(cruiseSpeed, 8, topSpeed * 0.9);
 
       // Update spec badges
-      document.getElementById("specBattery").textContent = batteryWh.toFixed(0);
+      document.getElementById("specBattery").textContent      = batteryWh.toFixed(0);
       document.getElementById("specClaimedRange").textContent = claimedRange.toFixed(0);
-      document.getElementById("specTopSpeed").textContent = topSpeed.toFixed(0);
-      document.getElementById("specRiderWeight").textContent = riderWeight.toFixed(0);
+      document.getElementById("specTopSpeed").textContent     = topSpeed.toFixed(0);
+      document.getElementById("specRiderWeight").textContent  = riderWeight.toFixed(0);
 
       const rideStyleTextMap = {
-        slow: "Slow & chill",
-        city: "City cruising",
+        slow:      "Slow & chill",
+        city:      "City cruising",
         longrange: "Hyper range",
         speedster: "Fast cruising",
-        racing: "Racing",
+        racing:    "Racing",
       };
-      document.getElementById("specRideStyleText").textContent =
+
+      const specStyleText =
         rideStyleTextMap[rideStyle] || "City cruising";
+      document.getElementById("specRideStyleText").textContent = specStyleText;
+
+      const hintEl = document.getElementById("rideStyleHint");
+      if (hintEl) {
+        hintEl.textContent =
+          rideStyleDescriptions[rideStyle] ||
+          "Balanced city / mixed ride, ~65–75% of top speed.";
+      }
 
       // Charts: determine max for scale
       const maxRange = Math.max(claimedRange, realisticRange, 1);
       const maxSpeed = Math.max(topSpeed, cruiseSpeed, 1);
 
-      const rangeClaimedWidth = (claimedRange / maxRange) * 100;
-      const rangeRealWidth = (realisticRange / maxRange) * 100;
+      const rangeClaimedWidth = (claimedRange   / maxRange) * 100;
+      const rangeRealWidth    = (realisticRange / maxRange) * 100;
 
-      const speedTopWidth = (topSpeed / maxSpeed) * 100;
+      const speedTopWidth    = (topSpeed    / maxSpeed) * 100;
       const speedCruiseWidth = (cruiseSpeed / maxSpeed) * 100;
 
       document.getElementById("barRangeClaimed").style.width =
@@ -800,12 +830,12 @@
       let tripText = "";
       let statusOK = true;
       if (desiredDistance > 0) {
-        const usedFraction = desiredDistance / realisticRange;
+        const usedFraction   = desiredDistance / realisticRange;
         const batteryUsedPct = clamp(usedFraction * 100, 0, 200);
         const batteryLeftPct = clamp(100 - batteryUsedPct, -20, 100);
 
         const targetEndPct = safetyBuffer;
-        const meetsBuffer = batteryLeftPct >= targetEndPct;
+        const meetsBuffer  = batteryLeftPct >= targetEndPct;
 
         if (usedFraction <= 1) {
           tripText =
@@ -843,7 +873,7 @@
 
       document.getElementById("summaryTrip").innerHTML = tripText;
 
-      const statusDot = document.getElementById("statusDot");
+      const statusDot  = document.getElementById("statusDot");
       const statusText = document.getElementById("statusText");
 
       if (statusOK) {
@@ -861,16 +891,82 @@
         riderWeight.toFixed(0);
     }
 
-    // Attach listeners
+    /* ---------- accept presets from parent or URL ---------- */
+
+    function applyPresetFromObject(preset) {
+      if (!preset || typeof preset !== "object") return;
+
+      function setNum(id, val) {
+        if (typeof val === "number" && !Number.isNaN(val)) {
+          const el = document.getElementById(id);
+          if (el) el.value = String(val);
+        }
+      }
+
+      if (preset.wheelName) {
+        const wn = document.getElementById("wheelName");
+        if (wn) wn.value = preset.wheelName;
+      }
+
+      setNum("batteryWh", preset.batteryWh);
+      setNum("claimedRange", preset.claimedRange);
+      setNum("topSpeed", preset.topSpeed);
+      setNum("wheelWeight", preset.wheelWeight);
+      setNum("riderWeight", preset.riderWeight);
+
+      if (preset.rideStyle) {
+        const rs = document.getElementById("rideStyle");
+        if (rs) rs.value = preset.rideStyle;
+      }
+
+      const rwDisp = document.getElementById("riderWeightDisplay");
+      if (typeof preset.riderWeight === "number" && rwDisp) {
+        rwDisp.textContent = preset.riderWeight.toFixed(0);
+      }
+
+      calculate();
+    }
+
+    function getPresetFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      if ([...params].length === 0) return null;
+
+      const preset = {};
+      if (params.get("wheelName")) preset.wheelName = params.get("wheelName");
+      if (params.get("rideStyle")) preset.rideStyle = params.get("rideStyle");
+
+      ["batteryWh", "claimedRange", "topSpeed", "wheelWeight", "riderWeight"].forEach((key) => {
+        const v = params.get(key);
+        if (v !== null && v !== "") {
+          const n = parseFloat(v);
+          if (!Number.isNaN(n)) preset[key] = n;
+        }
+      });
+
+      return preset;
+    }
+
+    // Listen for messages from parent page (iframe case)
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data || data.type !== "EUC_RANGE_SYNC") return;
+      applyPresetFromObject(data.payload || {});
+    });
+
+    // Attach listeners & apply presets on load
     window.addEventListener("DOMContentLoaded", () => {
-      const inputs = document.querySelectorAll(
-        "input, select"
-      );
+      const inputs = document.querySelectorAll("input, select");
       inputs.forEach((el) => {
         el.addEventListener("input", calculate);
         el.addEventListener("change", calculate);
       });
-      calculate();
+
+      const presetFromUrl = getPresetFromQuery();
+      if (presetFromUrl) {
+        applyPresetFromObject(presetFromUrl);
+      } else {
+        calculate();
+      }
     });
   </script>
 </body>

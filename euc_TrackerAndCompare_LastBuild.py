@@ -788,7 +788,7 @@ def build_html_table(eucs):
             gap: 20px;
             align-items: stretch;
             background: #020617;
-            border: 1px solid #1f2937;
+            border: 1f2937;
             border-radius: 12px;
             padding: 16px;
             margin-top: 12px;
@@ -1028,7 +1028,7 @@ def build_html_table(eucs):
             <div class="selected-actions">
                 <button id="compare-toggle-btn" type="button">Compare EUC</button>
 
-                <!-- Range Monitor now opens in a popup modal -->
+                <!-- Range Monitor button -->
                 <button id="range-monitor-btn" type="button">
                     Range Monitor
                 </button>
@@ -1146,6 +1146,15 @@ def build_html_table(eucs):
     let compareMode = false;
     let currentSource = "__FIRST_SOURCE__";  // "ewheels", "alien", or "nextgen"
 
+    // holds the currently selected wheel data (full, for UI)
+    let currentWheelPayload = null;
+
+    // numeric preset for the Range Monitor page
+    let currentRangePreset = null;
+
+    // Will hold a reference to the external window (file:// fallback)
+    let rangeMonitorWindow = null;
+
     const FEEDBACK_DATA = {
         "Begode A1": [
             "Super portable and fun for short city rides.",
@@ -1214,6 +1223,154 @@ def build_html_table(eucs):
         document.body.style.overflow = '';
     }
 
+    // ------------- numeric parsing helpers (for Range Monitor preset) -------------
+
+    function parseFirstNumber(str) {
+        if (!str) return null;
+        const nums = String(str).match(/(\d+(\.\d+)?)/g);
+        if (!nums || !nums.length) return null;
+        return parseFloat(nums[0]);
+    }
+
+    function parseLargestNumber(str) {
+        if (!str) return null;
+        const nums = String(str).match(/(\d+(\.\d+)?)/g);
+        if (!nums || !nums.length) return null;
+        return nums
+            .map(parseFloat)
+            .filter(v => !Number.isNaN(v))
+            .reduce((a, b) => Math.max(a, b), -Infinity);
+    }
+
+    function parseBatteryWh(batteryStr) {
+        if (!batteryStr) return 3600; // fallback
+        const m = batteryStr.match(/(\d[\\d,]*)\\s*Wh/i);
+        if (m) {
+            return parseInt(m[1].replace(/,/g, ""), 10);
+        }
+        const n = parseFirstNumber(batteryStr);
+        return n || 3600;
+    }
+
+    function parseRangeMiles(rangeStr) {
+        if (!rangeStr) return 40;
+        const nums = String(rangeStr).match(/(\\d+(\\.\\d+)?)/g);
+        if (!nums || !nums.length) return 40;
+
+        const values = nums.map(parseFloat).filter(v => !Number.isNaN(v));
+        if (!values.length) return 40;
+
+        // If two numbers with dash / "to" → average
+        if (values.length === 2 && /-|–|to/i.test(rangeStr)) {
+            return (values[0] + values[1]) / 2;
+        }
+
+        // Else largest number
+        const max = values.reduce((a, b) => Math.max(a, b), values[0]);
+        return max;
+    }
+
+    function parseSpeedMph(speedStr) {
+        if (!speedStr) return 30;
+
+        const mphMatches = [];
+        const re = /(\\d+(\\.\\d+)?)\\s*mph/gi;
+        let m;
+        while ((m = re.exec(speedStr)) !== null) {
+            mphMatches.push(parseFloat(m[1]));
+        }
+        if (mphMatches.length) {
+            return mphMatches.reduce((a, b) => Math.max(a, b), mphMatches[0]);
+        }
+
+        const n = parseLargestNumber(speedStr);
+        return n || 30;
+    }
+
+    function parseWeightLbs(weightStr) {
+        if (!weightStr) return 90;
+
+        const re = /(\\d+(\\.\\d+)?)\\s*(lb|lbs)/gi;
+        const matches = [];
+        let m;
+        while ((m = re.exec(weightStr)) !== null) {
+            matches.push(parseFloat(m[1]));
+        }
+        if (matches.length) {
+            return matches.reduce((a, b) => Math.max(a, b), matches[0]);
+        }
+
+        const n = parseLargestNumber(weightStr);
+        return n || 90;
+    }
+
+    // NEW: build an object that represents the currently selected EUC (full)
+    function buildWheelPayloadFromRow(row) {
+        if (!row) return null;
+        return {
+            name: row.dataset.name || 'N/A',
+            battery: row.dataset.battery || 'N/A',
+            range: row.dataset.range || 'N/A',
+            speed: row.dataset.speed || 'N/A',
+            motor: row.dataset.motor || 'N/A',
+            weight: row.dataset.weight || 'N/A',
+            maxload: row.dataset.maxload || 'N/A',
+            battype: row.dataset.battype || 'N/A',
+            source: row.dataset.source || 'ewheels',
+            url: row.dataset.url || '#'
+        };
+    }
+
+    // NEW: numeric preset for the Range Monitor page
+    function buildRangePresetFromRow(row) {
+        if (!row) return null;
+
+        const name    = row.dataset.name   || 'N/A';
+        const battery = row.dataset.battery || '';
+        const range   = row.dataset.range   || '';
+        const speed   = row.dataset.speed   || '';
+        const weight  = row.dataset.weight  || '';
+
+        const batteryWh    = parseBatteryWh(battery);
+        const claimedRange = parseRangeMiles(range);
+        const topSpeed     = parseSpeedMph(speed);
+        const wheelWeight  = parseWeightLbs(weight);
+
+        // Rider weight is a user thing; we just give a sane default
+        const riderWeight  = 180;
+
+        return {
+            wheelName: name,
+            batteryWh: batteryWh,
+            claimedRange: claimedRange,
+            topSpeed: topSpeed,
+            wheelWeight: wheelWeight,
+            riderWeight: riderWeight
+        };
+    }
+
+    // NEW: send the current wheel preset to the Range Monitor (iframe or external window)
+    function sendWheelToRangeMonitor() {
+        if (!currentRangePreset) return;
+
+        const message = {
+            type: "EUC_RANGE_SYNC",
+            payload: currentRangePreset
+        };
+
+        const iframe = document.getElementById('range-iframe');
+
+        // If the iframe exists and is loaded, use postMessage
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(message, "*");
+        }
+
+        // Also try posting to the external window (file:// fallback)
+        if (rangeMonitorWindow && !rangeMonitorWindow.closed) {
+            rangeMonitorWindow.postMessage(message, "*");
+        }
+    }
+
     function openRangeModal() {
         const overlay = document.getElementById('range-overlay');
         const iframe  = document.getElementById('range-iframe');
@@ -1226,13 +1383,29 @@ def build_html_table(eucs):
             if (!iframe.dataset.loaded) {
                 iframe.src = 'euc_realistic_range.html';  // relative to euc_table.html
                 iframe.dataset.loaded = '1';
+
+                // Once the Range Monitor is loaded, send the current wheel
+                iframe.addEventListener('load', function onLoad() {
+                    iframe.removeEventListener('load', onLoad);
+                    sendWheelToRangeMonitor();
+                });
+            } else {
+                // Already loaded, just send the current wheel
+                sendWheelToRangeMonitor();
             }
             overlay.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         } else {
-            // When opened as file://, browsers often block file->file iframe loads.
-            // Fallback: open the Range Monitor page in a new tab/window.
-            window.open('euc_realistic_range.html', '_blank');
+            // file:// fallback
+            rangeMonitorWindow = window.open('euc_realistic_range.html', 'EUC_RangeMonitor');
+
+            setTimeout(function() {
+                try {
+                    sendWheelToRangeMonitor();
+                } catch (err) {
+                    // ignore if window not ready
+                }
+            }, 700);
         }
     }
 
@@ -1306,6 +1479,10 @@ def build_html_table(eucs):
             div.textContent = 'No image available';
             imgBox.appendChild(div);
         }
+
+        // update globals for Range Monitor + other use
+        currentWheelPayload = buildWheelPayloadFromRow(row);
+        currentRangePreset  = buildRangePresetFromRow(row);
     }
 
     function updateCompareBanner(row) {
@@ -1427,6 +1604,8 @@ def build_html_table(eucs):
             if (desc) {
                 desc.textContent = 'No wheels found for this distributor.';
             }
+            currentWheelPayload = null;
+            currentRangePreset  = null;
         }
     }
 
@@ -1795,7 +1974,7 @@ def main():
 
     html_page = build_html_table(eucs)
     out_file = "euc_table.html"
-    with open(out_file, "w", encoding="utf-8") as f:
+    with open(out_file, "w", encoding="utf-8") as f:    
         f.write(html_page)
 
     full_path = os.path.realpath(out_file)
