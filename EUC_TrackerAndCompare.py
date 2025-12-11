@@ -704,10 +704,11 @@ def build_html_table(eucs):
             color: #9ca3af;
             margin-top: 4px;
         }
+        /* UPDATED: tighter grid so all specs fit on one line */
         .selected-specs {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 6px 16px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 4px 10px;
             margin-top: 8px;
         }
         .spec-label {
@@ -783,20 +784,67 @@ def build_html_table(eucs):
         .compare-btn.show {
             display: inline-block;
         }
+
+        /* --- COMPACT COMPARE BANNER --- */
         .compare-wrapper {
             display: none;
-            gap: 20px;
-            align-items: stretch;
+            gap: 14px;
+            align-items: center;
             background: #020617;
             border: 1px solid #1f2937;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-top: 10px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
             position: sticky;
-            top: 280px;
+            top: 240px;
             z-index: 19;
         }
+        .compare-wrapper .selected-image-box {
+            width: 110px;
+            min-height: 110px;
+            max-height: 110px;
+            border-radius: 10px;
+        }
+        .compare-wrapper .selected-title {
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .compare-wrapper .selected-info {
+            gap: 4px;
+        }
+
+        .compare-specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 4px 12px;
+            margin-top: 4px;
+        }
+        .compare-spec-block {
+            font-size: 0.8rem;
+        }
+        .compare-spec-block .spec-label {
+            font-size: 0.75rem;
+        }
+        .spec-main {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .spec-bar {
+            height: 4px;
+            border-radius: 999px;
+            background: #020617;
+            overflow: hidden;
+            border: 1px solid #111827;
+        }
+        .spec-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #22c55e, #0ea5e9);
+            transition: width 0.25s ease-out;
+        }
+
         .compare-banner-btn {
             padding: 6px 14px;
             border-radius: 999px;
@@ -808,7 +856,7 @@ def build_html_table(eucs):
             cursor: pointer;
         }
         .compare-clear-btn {
-            margin-left: 8px;
+            margin-left: 4px;
             padding: 6px 14px;
             border-radius: 999px;
             border: 1px solid #1f2937;
@@ -818,6 +866,7 @@ def build_html_table(eucs):
             font-weight: 600;
             cursor: pointer;
         }
+
         .feedback-modal-overlay {
             position: fixed;
             inset: 0;
@@ -830,7 +879,7 @@ def build_html_table(eucs):
         .feedback-modal {
             background: #020617;
             border-radius: 12px;
-            border: 1px solid #1f2937;
+            border: 1f2937;
             max-width: 600px;
             width: 90%;
             max-height: 70vh;
@@ -1046,39 +1095,58 @@ def build_html_table(eucs):
         </div>
     </div>
 
-    <!-- comparison popup banner (starts hidden) -->
+    <!-- COMPACT comparison popup banner (starts hidden) -->
     <div class="compare-wrapper" id="compare-wrapper">
         <div class="selected-image-box" id="cmp-image-box"></div>
         <div class="selected-info">
             <div class="selected-title" id="cmp-name">Comparison EUC</div>
             <div class="badge" id="cmp-battype-badge">Battery Type N/A</div>
-            <div class="selected-desc" id="cmp-desc">Select a wheel to compare.</div>
-            <div class="selected-specs">
-                <div>
+
+            <div class="compare-specs-grid">
+                <div class="compare-spec-block">
                     <div class="spec-label">Battery</div>
-                    <div class="spec-value" id="cmp-battery">N/A</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-battery">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-battery-bar"></div></div>
+                    </div>
                 </div>
-                <div>
+                <div class="compare-spec-block">
                     <div class="spec-label">Range</div>
-                    <div class="spec-value" id="cmp-range">N/A</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-range">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-range-bar"></div></div>
+                    </div>
                 </div>
-                <div>
+                <div class="compare-spec-block">
                     <div class="spec-label">Top Speed</div>
-                    <div class="spec-value" id="cmp-speed">N/A</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-speed">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-speed-bar"></div></div>
+                    </div>
                 </div>
-                <div>
+                <div class="compare-spec-block">
                     <div class="spec-label">Motor Power</div>
-                    <div class="spec-value" id="cmp-motor">N/A</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-motor">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-motor-bar"></div></div>
+                    </div>
                 </div>
-                <div>
+                <div class="compare-spec-block">
                     <div class="spec-label">Weight</div>
-                    <div class="spec-value" id="cmp-weight">N/A</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-weight">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-weight-bar"></div></div>
+                    </div>
                 </div>
-                <div>
+                <div class="compare-spec-block">
                     <div class="spec-label">Max Load</div>
-                    <div class="spec-value" id="cmp-maxload">N/A</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-maxload">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-maxload-bar"></div></div>
+                    </div>
                 </div>
             </div>
+
             <div class="selected-actions">
                 <button class="compare-banner-btn" type="button">Compare</button>
                 <button class="compare-clear-btn" type="button">Remove</button>
@@ -1223,7 +1291,7 @@ def build_html_table(eucs):
         document.body.style.overflow = '';
     }
 
-    // ------------- numeric parsing helpers (for Range Monitor preset) -------------
+    // ------------- numeric parsing helpers (for Range Monitor & spec bars) -------------
 
     function parseFirstNumber(str) {
         if (!str) return null;
@@ -1304,7 +1372,16 @@ def build_html_table(eucs):
         return n || 90;
     }
 
-    // NEW: build an object that represents the currently selected EUC (full)
+    function parseMotorW(motorStr) {
+        if (!motorStr) return 2000;
+        const m = String(motorStr).match(/(\d[\d,]*)\s*W\b/i);
+        if (m) {
+            return parseInt(m[1].replace(/,/g, ""), 10);
+        }
+        const n = parseLargestNumber(motorStr);
+        return n || 2000;
+    }
+
     function buildWheelPayloadFromRow(row) {
         if (!row) return null;
         return {
@@ -1491,6 +1568,18 @@ def build_html_table(eucs):
         currentRangePreset  = buildRangePresetFromRow(row);
     }
 
+    function setSpecBar(id, value, maxVal) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (value == null || !isFinite(value)) {
+            el.style.width = '0%';
+            return;
+        }
+        let pct = (value / maxVal) * 100;
+        pct = Math.max(5, Math.min(100, pct));
+        el.style.width = pct + '%';
+    }
+
     function updateCompareBanner(row) {
         if (!compareMode) return;
 
@@ -1508,7 +1597,6 @@ def build_html_table(eucs):
         const battype = row.dataset.battype || 'Battery Type N/A';
         const url = row.dataset.url || '#';
         const image = row.dataset.image || '';
-        const desc = row.dataset.desc || 'No description available.';
         const source = row.dataset.source || 'ewheels';
 
         document.getElementById('cmp-name').textContent = name;
@@ -1519,7 +1607,6 @@ def build_html_table(eucs):
         document.getElementById('cmp-weight').textContent = weight;
         document.getElementById('cmp-maxload').textContent = maxload;
         document.getElementById('cmp-battype-badge').textContent = battype || 'Battery Type N/A';
-        document.getElementById('cmp-desc').textContent = desc;
 
         const link = document.getElementById('cmp-url');
         link.href = url;
@@ -1538,6 +1625,22 @@ def build_html_table(eucs):
             div.textContent = 'No image available';
             imgBox.appendChild(div);
         }
+
+        // numeric values for level bars
+        const batteryWh = parseBatteryWh(battery);
+        const rangeMi   = parseRangeMiles(range);
+        const speedMph  = parseSpeedMph(speed);
+        const motorW    = parseMotorW(motor);
+        const weightLb  = parseWeightLbs(weight);
+        const maxLoadLb = parseWeightLbs(maxload);
+
+        // rough maxes for normalization – tweak as you like
+        setSpecBar('cmp-battery-bar', batteryWh, 4000);
+        setSpecBar('cmp-range-bar',   rangeMi,   120);
+        setSpecBar('cmp-speed-bar',   speedMph,  55);
+        setSpecBar('cmp-motor-bar',   motorW,    4000);
+        setSpecBar('cmp-weight-bar',  weightLb,  120);
+        setSpecBar('cmp-maxload-bar', maxLoadLb, 350);
     }
 
     function setCompareMode(on) {
@@ -1799,7 +1902,7 @@ def build_html_table(eucs):
         }
 
         const allRowsData = getAllRowsData();
-               if (!allRowsData.length) {
+        if (!allRowsData.length) {
             alert('No wheels loaded in the table yet.');
             return;
         }
