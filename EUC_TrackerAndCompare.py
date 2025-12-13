@@ -5,6 +5,11 @@ import html
 import os
 import webbrowser
 
+# NEW (server + API)
+import json
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse, parse_qs
+
 # --------- Distributor URLs ---------
 EWHEELS_BASE_URL = "https://ewheels.com"
 EWHEELS_ALL_VEHICLES_URL = "https://ewheels.com/pages/all-vehicles"
@@ -135,7 +140,6 @@ def get_alien_product_links(max_pages: int = 10):
 
         print(f"  Alien Rides page {page}: found {found_this_page} product links.")
         if found_this_page == 0:
-            # likely no more pages
             break
 
     print(f"Alien Rides: Found {len(products)} probable EUC product pages.")
@@ -185,7 +189,6 @@ def get_nextgen_product_links(max_pages: int = 10):
 
         print(f"  NextGen M page {page}: found {found_this_page} product links.")
         if found_this_page == 0:
-            # likely no more pages
             break
 
     print(f"NextGen M: Found {len(products)} probable EUC product pages.")
@@ -304,7 +307,6 @@ def parse_product_page(prod):
     weight = "N/A"
     max_load = "N/A"
 
-    # Try some label-based blocks (mainly useful for eWheels)
     speed_block = extract_stat_block(soup, "CRUISING SPEED")
     if not speed_block:
         speed_block = extract_stat_block(soup, "TOP SPEED")
@@ -330,7 +332,6 @@ def parse_product_page(prod):
     title_h1 = soup.find("h1")
     title_text = clean_text(title_h1.get_text()) if title_h1 else raw_name
 
-    # Battery from title / text
     if battery_capacity == "N/A":
         m = re.search(r"(\d[\d,]*)\s*Wh", title_text, re.IGNORECASE)
         if not m:
@@ -338,7 +339,6 @@ def parse_product_page(prod):
         if m:
             battery_capacity = m.group(1).replace(",", "") + "Wh"
 
-    # Motor power from title / text
     if motor_power == "N/A":
         m = re.search(r"(\d[\d,]*)\s*W\s*Motor", title_text, re.IGNORECASE)
         if not m:
@@ -375,7 +375,6 @@ def attr_escape(value: str) -> str:
 def build_html_table(eucs):
     eucs_sorted = sorted(eucs, key=lambda x: x["name"].lower())
 
-    # default to an eWheels wheel if available, else anything
     first = None
     for e in eucs_sorted:
         if e.get("source") == "ewheels":
@@ -559,7 +558,7 @@ def build_html_table(eucs):
             padding: 6px 14px;
             border-radius: 999px;
             border: 1px solid #1f2937;
-            background: #22c55e;   /* green-ish, you can tweak */
+            background: #22c55e;   /* green-ish */
             color: #0b1120;
             font-size: 0.8rem;
             font-weight: 600;
@@ -570,6 +569,45 @@ def build_html_table(eucs):
 
         #range-monitor-btn:hover {
             background: #16a34a;
+        }
+
+        /* Feedback + Compare feedback buttons (dark style) */
+        #feedback-btn,
+        .cmp-feedback-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #111827;
+            color: #e5e7eb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease-out;
+        }
+
+        #feedback-btn:hover,
+        #feedback-btn:active,
+        .cmp-feedback-btn:hover,
+        .cmp-feedback-btn:active {
+            background: #1f2937;
+        }
+
+        /* Video Reviews button (orange, with dim-on-hover like green) */
+        #video-reviews-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #f97316;   /* orange base */
+            color: #0b1120;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease-out;
+        }
+
+        #video-reviews-btn:hover,
+        #video-reviews-btn:active {
+            background: #ea580c;   /* dimmed orange */
         }
 
         #name-search-input {
@@ -654,6 +692,7 @@ def build_html_table(eucs):
         a {
             color: #38bdf8;
         }
+
         .selected-wrapper {
             display: flex;
             gap: 20px;
@@ -668,6 +707,41 @@ def build_html_table(eucs):
             top: 56px;
             z-index: 20;
         }
+
+        /* NEW: compact mode for selected banner (used when Video Reviews is active) */
+        .selected-wrapper.is-compact {
+            gap: 14px;
+            align-items: center;
+            border-radius: 10px;
+            padding: 10px 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+        .selected-wrapper.is-compact .selected-image-box {
+            width: 110px;
+            min-height: 110px;
+            max-height: 110px;
+            border-radius: 10px;
+        }
+        .selected-wrapper.is-compact .selected-title {
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .selected-wrapper.is-compact .selected-info {
+            gap: 4px;
+        }
+        .selected-wrapper.is-compact .selected-desc {
+            display: none;
+        }
+        .selected-wrapper.is-compact .selected-specs {
+            display: none;
+        }
+        .selected-wrapper.is-compact .selected-actions {
+            margin-top: 4px;
+        }
+        .selected-wrapper.is-compact .view-link {
+            margin-top: 4px;
+        }
+
         .selected-image-box {
             width: 260px;
             min-height: 180px;
@@ -704,7 +778,6 @@ def build_html_table(eucs):
             color: #9ca3af;
             margin-top: 4px;
         }
-        /* UPDATED: tighter grid so all specs fit on one line */
         .selected-specs {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -751,21 +824,7 @@ def build_html_table(eucs):
         #compare-toggle-btn.active {
             background: #22c55e;
         }
-        #feedback-btn,
-        .cmp-feedback-btn {
-            padding: 6px 14px;
-            border-radius: 999px;
-            border: 1px solid #1f2937;
-            background: #111827;
-            color: #e5e7eb;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        #feedback-btn:hover,
-        .cmp-feedback-btn:hover {
-            background: #1f2937;
-        }
+
         .compare-col {
             width: 90px;
             text-align: center;
@@ -993,6 +1052,115 @@ def build_html_table(eucs):
             border: none;
             background: #020617;
         }
+
+        /* --- Video Reviews Results Panel --- */
+        .video-results-wrap {
+            display: none;
+            margin-top: 16px;
+            background: #020617;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+        }
+        .video-results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .video-results-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #e5e7eb;
+        }
+        .video-results-subtitle {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        .video-back-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #111827;
+            color: #e5e7eb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .video-back-btn:hover { background: #1f2937; }
+
+        .video-loading {
+            display: none;
+            margin: 10px 0 14px 0;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #111827;
+            background: #0b1227;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+        .video-progress {
+            height: 8px;
+            border-radius: 999px;
+            border: 1px solid #111827;
+            background: #020617;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .video-progress-fill {
+            height: 100%;
+            width: 25%;
+            background: linear-gradient(90deg, #f97316, #0ea5e9);
+            animation: videoProg 0.9s infinite alternate;
+        }
+        @keyframes videoProg {
+            from { width: 15%; opacity: 0.7; }
+            to   { width: 85%; opacity: 1; }
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 12px;
+        }
+        .video-card {
+            background: #0b1227;
+            border: 1px solid #111827;
+            border-radius: 12px;
+            padding: 10px;
+        }
+        .video-embed {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: none;
+            border-radius: 10px;
+            background: #000;
+        }
+        .video-meta {
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+        }
+        .video-meta a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .video-meta a:hover { text-decoration: underline; }
+
+        .video-empty {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            padding: 12px;
+            border: 1px dashed #1f2937;
+            border-radius: 10px;
+            background: #020617;
+        }
     </style>
 </head>
 <body>
@@ -1082,6 +1250,11 @@ def build_html_table(eucs):
                     Range Monitor
                 </button>
 
+                <!-- Video Reviews button -->
+                <button id="video-reviews-btn" type="button">
+                    Video Reviews
+                </button>
+
                 <button id="feedback-btn" type="button">
                     What do others say about this wheel?
                 </button>
@@ -1160,27 +1333,48 @@ def build_html_table(eucs):
         </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th class="compare-col">Compare</th>
-                <th class="name-col">EUC Name</th>
-                <th>Battery Capacity</th>
-                <th>Range</th>
-                <th>Speed</th>
-                <th>Motor Power</th>
-                <th>Weight</th>
-                <th>Max Load</th>
-                <th>Battery Type</th>
-            </tr>
-        </thead>
-        <tbody id="euc-tbody">
-            __ROWS_HTML__
-        </tbody>
-    </table>
-    <p class="small">
-        NOTE: This is a best-effort scraper. Always double-check critical specs on the original product pages before buying.
-    </p>
+    <!-- Video results -->
+    <div class="video-results-wrap" id="video-results-wrap">
+        <div class="video-results-header">
+            <div>
+                <div class="video-results-title" id="video-results-title">Video Reviews</div>
+                <div class="video-results-subtitle" id="video-results-subtitle"></div>
+            </div>
+            <button class="video-back-btn" id="video-back-btn" type="button">Back to Specs</button>
+        </div>
+
+        <div class="video-loading" id="video-loading">
+            Searching YouTube for reviews…
+            <div class="video-progress"><div class="video-progress-fill"></div></div>
+        </div>
+
+        <div class="video-grid" id="video-grid"></div>
+    </div>
+
+    <!-- Specs table wrapper -->
+    <div id="specs-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th class="compare-col">Compare</th>
+                    <th class="name-col">EUC Name</th>
+                    <th>Battery Capacity</th>
+                    <th>Range</th>
+                    <th>Speed</th>
+                    <th>Motor Power</th>
+                    <th>Weight</th>
+                    <th>Max Load</th>
+                    <th>Battery Type</th>
+                </tr>
+            </thead>
+            <tbody id="euc-tbody">
+                __ROWS_HTML__
+            </tbody>
+        </table>
+        <p class="small">
+            NOTE: This is a best-effort scraper. Always double-check critical specs on the original product pages before buying.
+        </p>
+    </div>
 </div>
 
 <div class="feedback-modal-overlay" id="feedback-overlay">
@@ -1204,7 +1398,6 @@ def build_html_table(eucs):
             <button class="range-close-btn" id="range-close-btn" type="button">✕</button>
         </div>
         <div class="range-modal-body">
-            <!-- src is set in JS on first open -->
             <iframe id="range-iframe" src="" frameborder="0"></iframe>
         </div>
     </div>
@@ -1260,6 +1453,13 @@ def build_html_table(eucs):
             .replace(/'/g, "&#39;");
     }
 
+    // NEW: selected banner compact toggle
+    function setSelectedCompact(on) {
+        const wrap = document.getElementById('selected-wrapper');
+        if (!wrap) return;
+        wrap.classList.toggle('is-compact', !!on);
+    }
+
     function renderFeedbackList() {
         const listEl = document.getElementById('feedback-list');
         listEl.innerHTML = "";
@@ -1291,18 +1491,126 @@ def build_html_table(eucs):
         document.body.style.overflow = '';
     }
 
+    // ---------------- Video Reviews panel (replaces table below) ----------------
+
+    function showVideoPanel(wheelName) {
+        const specsWrap = document.getElementById('specs-table-wrap');
+        const videoWrap = document.getElementById('video-results-wrap');
+        const titleEl   = document.getElementById('video-results-title');
+        const subEl     = document.getElementById('video-results-subtitle');
+
+        if (specsWrap) specsWrap.style.display = 'none';
+        if (videoWrap) videoWrap.style.display = 'block';
+
+        if (titleEl) titleEl.textContent = 'Video Reviews';
+        if (subEl) subEl.textContent = (wheelName ? wheelName + ' — YouTube results' : 'YouTube results');
+
+        // NEW: shrink selected banner while Video Reviews is active
+        setSelectedCompact(true);
+    }
+
+    function hideVideoPanel() {
+        const specsWrap = document.getElementById('specs-table-wrap');
+        const videoWrap = document.getElementById('video-results-wrap');
+        const grid      = document.getElementById('video-grid');
+        const loading   = document.getElementById('video-loading');
+
+        if (videoWrap) videoWrap.style.display = 'none';
+        if (specsWrap) specsWrap.style.display = 'block';
+        if (grid) grid.innerHTML = '';
+        if (loading) loading.style.display = 'none';
+
+        // NEW: restore selected banner to full size
+        setSelectedCompact(false);
+    }
+
+    function renderVideoResults(wheelName, items) {
+        const grid = document.getElementById('video-grid');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
+        if (!items || !items.length) {
+            grid.innerHTML = '<div class="video-empty">No videos found. Try a different search phrase.</div>';
+            return;
+        }
+
+        items.forEach(v => {
+            const vid = v.videoId;
+            if (!vid) return;
+
+            const card = document.createElement('div');
+            card.className = 'video-card';
+
+            const iframe = document.createElement('iframe');
+            iframe.className = 'video-embed';
+            iframe.src = 'https://www.youtube.com/embed/' + encodeURIComponent(vid);
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframe.allowFullscreen = true;
+
+            const meta = document.createElement('div');
+            meta.className = 'video-meta';
+
+            const a = document.createElement('a');
+            a.href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(vid);
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.textContent = 'Open on YouTube';
+
+            const small = document.createElement('div');
+            small.className = 'small';
+            small.textContent = wheelName ? wheelName : '';
+
+            meta.appendChild(a);
+            meta.appendChild(small);
+
+            card.appendChild(iframe);
+            card.appendChild(meta);
+            grid.appendChild(card);
+        });
+    }
+
+    async function openVideoReviews(wheelName) {
+        const loading = document.getElementById('video-loading');
+        const grid = document.getElementById('video-grid');
+
+        showVideoPanel(wheelName);
+
+        if (grid) grid.innerHTML = '';
+        if (loading) loading.style.display = 'block';
+
+        const q = (wheelName || 'electric unicycle') + ' review';
+        const apiUrl = '/api/youtube?q=' + encodeURIComponent(q);
+
+        try {
+            const resp = await fetch(apiUrl, { cache: "no-store" });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+
+            if (loading) loading.style.display = 'none';
+            renderVideoResults(wheelName, data.items || []);
+        } catch (err) {
+            if (loading) loading.style.display = 'none';
+            if (grid) {
+                grid.innerHTML =
+                    '<div class="video-empty">Could not load YouTube results. ' +
+                    'Make sure you opened the page from the local server (http://127.0.0.1:PORT) not file://</div>';
+            }
+        }
+    }
+
     // ------------- numeric parsing helpers (for Range Monitor & spec bars) -------------
 
     function parseFirstNumber(str) {
         if (!str) return null;
-        const nums = String(str).match(/(\d+(\.\d+)?)/g);
+        const nums = String(str).match(/(\\d+(\\.\\d+)?)/g);
         if (!nums || !nums.length) return null;
         return parseFloat(nums[0]);
     }
 
     function parseLargestNumber(str) {
         if (!str) return null;
-        const nums = String(str).match(/(\d+(\.\d+)?)/g);
+        const nums = String(str).match(/(\\d+(\\.\\d+)?)/g);
         if (!nums || !nums.length) return null;
         return nums
             .map(parseFloat)
@@ -1312,7 +1620,7 @@ def build_html_table(eucs):
 
     function parseBatteryWh(batteryStr) {
         if (!batteryStr) return 3600; // fallback
-        const m = batteryStr.match(/(\d[\d,]*)\s*Wh/i);
+        const m = batteryStr.match(/(\\d[\\d,]*)\\s*Wh/i);
         if (m) {
             return parseInt(m[1].replace(/,/g, ""), 10);
         }
@@ -1322,18 +1630,16 @@ def build_html_table(eucs):
 
     function parseRangeMiles(rangeStr) {
         if (!rangeStr) return 40;
-        const nums = String(rangeStr).match(/(\d+(\.\d+)?)/g);
+        const nums = String(rangeStr).match(/(\\d+(\\.\\d+)?)/g);
         if (!nums || !nums.length) return 40;
 
         const values = nums.map(parseFloat).filter(v => !Number.isNaN(v));
         if (!values.length) return 40;
 
-        // If two numbers with dash / "to" → average
         if (values.length === 2 && /-|–|to/i.test(rangeStr)) {
             return (values[0] + values[1]) / 2;
         }
 
-        // Else largest number
         const max = values.reduce((a, b) => Math.max(a, b), values[0]);
         return max;
     }
@@ -1342,7 +1648,7 @@ def build_html_table(eucs):
         if (!speedStr) return 30;
 
         const mphMatches = [];
-        const re = /(\d+(\.\d+)?)\s*mph/gi;
+        const re = /(\\d+(\\.\\d+)?)\\s*mph/gi;
         let m;
         while ((m = re.exec(speedStr)) !== null) {
             mphMatches.push(parseFloat(m[1]));
@@ -1358,7 +1664,7 @@ def build_html_table(eucs):
     function parseWeightLbs(weightStr) {
         if (!weightStr) return 90;
 
-        const re = /(\d+(\.\d+)?)\s*(lb|lbs)/gi;
+        const re = /(\\d+(\\.\\d+)?)\\s*(lb|lbs)/gi;
         const matches = [];
         let m;
         while ((m = re.exec(weightStr)) !== null) {
@@ -1374,7 +1680,7 @@ def build_html_table(eucs):
 
     function parseMotorW(motorStr) {
         if (!motorStr) return 2000;
-        const m = String(motorStr).match(/(\d[\d,]*)\s*W\b/i);
+        const m = String(motorStr).match(/(\\d[\\d,]*)\\s*W\\b/i);
         if (m) {
             return parseInt(m[1].replace(/,/g, ""), 10);
         }
@@ -1398,7 +1704,6 @@ def build_html_table(eucs):
         };
     }
 
-    // UPDATED: numeric preset for the Range Monitor page, including imageUrl
     function buildRangePresetFromRow(row) {
         if (!row) return null;
 
@@ -1414,7 +1719,6 @@ def build_html_table(eucs):
         const topSpeed     = parseSpeedMph(speed);
         const wheelWeight  = parseWeightLbs(weight);
 
-        // Rider weight is a user thing; we just give a sane default
         const riderWeight  = 180;
 
         return {
@@ -1424,12 +1728,10 @@ def build_html_table(eucs):
             topSpeed: topSpeed,
             wheelWeight: wheelWeight,
             riderWeight: riderWeight,
-            // this is what the Range Monitor page will use to show the wheel image
             imageUrl: image
         };
     }
 
-    // NEW: send the current wheel preset to the Range Monitor (iframe or external window)
     function sendWheelToRangeMonitor() {
         if (!currentRangePreset) return;
 
@@ -1440,12 +1742,10 @@ def build_html_table(eucs):
 
         const iframe = document.getElementById('range-iframe');
 
-        // If the iframe exists and is loaded, use postMessage
         if (iframe && iframe.contentWindow) {
             iframe.contentWindow.postMessage(message, "*");
         }
 
-        // Also try posting to the external window (file:// fallback)
         if (rangeMonitorWindow && !rangeMonitorWindow.closed) {
             rangeMonitorWindow.postMessage(message, "*");
         }
@@ -1459,7 +1759,6 @@ def build_html_table(eucs):
         const isHttp = (location.protocol === 'http:' || location.protocol === 'https:');
 
         if (isHttp) {
-            // Ensure we have a load handler bound once, BEFORE setting src
             if (!iframe.dataset.bound) {
                 iframe.addEventListener('load', function() {
                     sendWheelToRangeMonitor();
@@ -1467,27 +1766,20 @@ def build_html_table(eucs):
                 iframe.dataset.bound = '1';
             }
 
-            // When served over HTTP(S), load inside the iframe (once)
             if (!iframe.dataset.loaded) {
-                iframe.src = 'euc_realistic_range.html';  // relative to euc_table.html
+                iframe.src = 'euc_realistic_range.html';
                 iframe.dataset.loaded = '1';
             } else {
-                // Already loaded, just send the current wheel
                 sendWheelToRangeMonitor();
             }
 
             overlay.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         } else {
-            // file:// fallback
             rangeMonitorWindow = window.open('euc_realistic_range.html', 'EUC_RangeMonitor');
 
             setTimeout(function() {
-                try {
-                    sendWheelToRangeMonitor();
-                } catch (err) {
-                    // ignore if window not ready
-                }
+                try { sendWheelToRangeMonitor(); } catch (err) {}
             }, 700);
         }
     }
@@ -1519,6 +1811,15 @@ def build_html_table(eucs):
     }
 
     function updateSelected(row) {
+        // If video panel is open, go back to specs when changing selection
+        const videoWrap = document.getElementById('video-results-wrap');
+        if (videoWrap && videoWrap.style.display === 'block') {
+            hideVideoPanel();
+        }
+
+        // NEW: ensure full-size banner when selecting a wheel
+        setSelectedCompact(false);
+
         document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-row'));
         row.classList.add('active-row');
 
@@ -1563,7 +1864,6 @@ def build_html_table(eucs):
             imgBox.appendChild(div);
         }
 
-        // update globals for Range Monitor + other use
         currentWheelPayload = buildWheelPayloadFromRow(row);
         currentRangePreset  = buildRangePresetFromRow(row);
     }
@@ -1626,7 +1926,6 @@ def build_html_table(eucs):
             imgBox.appendChild(div);
         }
 
-        // numeric values for level bars
         const batteryWh = parseBatteryWh(battery);
         const rangeMi   = parseRangeMiles(range);
         const speedMph  = parseSpeedMph(speed);
@@ -1634,7 +1933,6 @@ def build_html_table(eucs):
         const weightLb  = parseWeightLbs(weight);
         const maxLoadLb = parseWeightLbs(maxload);
 
-        // rough maxes for normalization – tweak as you like
         setSpecBar('cmp-battery-bar', batteryWh, 4000);
         setSpecBar('cmp-range-bar',   rangeMi,   120);
         setSpecBar('cmp-speed-bar',   speedMph,  55);
@@ -1690,7 +1988,6 @@ def build_html_table(eucs):
     function setSource(newSource) {
         currentSource = newSource || 'ewheels';
 
-        // Toggle topbar button styles
         document.querySelectorAll('.topbar-link').forEach(btn => {
             const src = btn.dataset.distributor;
             const active = (src === currentSource);
@@ -1717,8 +2014,6 @@ def build_html_table(eucs):
             currentRangePreset  = null;
         }
     }
-
-    // -------- Helper: collect rows as plain objects --------
 
     function buildRowData(row) {
         return {
@@ -1751,7 +2046,6 @@ def build_html_table(eucs):
     }
 
     // -------- Search results window --------
-
     function openSearchResultsPage(allRowsData, initialQueryLabel, initialQueryValue) {
         const win = window.open('', '_blank');
         if (!win) {
@@ -1878,7 +2172,6 @@ def build_html_table(eucs):
         doc.close();
     }
 
-    // Main-page search: always uses full dataset
     function performNameSearch() {
         const inputEl = document.getElementById('name-search-input');
         const selectEl = document.getElementById('name-search-select');
@@ -1937,6 +2230,26 @@ def build_html_table(eucs):
             });
         }
 
+        // Video Reviews button click (renders below, replaces table)
+        const videoReviewsBtn = document.getElementById('video-reviews-btn');
+        if (videoReviewsBtn) {
+            videoReviewsBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const nameEl = document.getElementById('sel-name');
+                const wheelName = nameEl ? nameEl.textContent.trim() : 'Electric Unicycle';
+                openVideoReviews(wheelName);
+            });
+        }
+
+        // Back to specs button
+        const backBtn = document.getElementById('video-back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                hideVideoPanel();
+            });
+        }
+
         const cmpFeedbackBtn = document.querySelector('.cmp-feedback-btn');
         if (cmpFeedbackBtn) {
             cmpFeedbackBtn.addEventListener('click', function(e) {
@@ -1985,7 +2298,6 @@ def build_html_table(eucs):
             });
         }
 
-        // Range Monitor popup
         const rangeBtn = document.getElementById('range-monitor-btn');
         if (rangeBtn) {
             rangeBtn.addEventListener('click', function(e) {
@@ -2011,7 +2323,6 @@ def build_html_table(eucs):
             });
         }
 
-        // Distributor buttons – switch data sets in-place
         document.querySelectorAll('.topbar-link').forEach(btn => {
             btn.addEventListener('click', function() {
                 const src = btn.dataset.distributor;
@@ -2021,7 +2332,6 @@ def build_html_table(eucs):
             });
         });
 
-        // Populate dropdown with all unique wheel names
         const selectEl = document.getElementById('name-search-select');
         const inputEl = document.getElementById('name-search-input');
         if (selectEl) {
@@ -2039,7 +2349,6 @@ def build_html_table(eucs):
             });
         }
 
-        // Hook search button and Enter key
         const searchBtn = document.getElementById('name-search-btn');
         if (searchBtn) {
             searchBtn.addEventListener('click', function(e) {
@@ -2056,7 +2365,6 @@ def build_html_table(eucs):
             });
         }
 
-        // Initial setup
         setCompareMode(false);
         setSource(currentSource || 'ewheels');
     });
@@ -2070,6 +2378,50 @@ def build_html_table(eucs):
         html_page = html_page.replace(f"__{key}__", val)
 
     return html_page
+
+
+# ----------------- Local server + YouTube API -----------------
+
+class EUCVaultHandler(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        parsed = urlparse(self.path)
+
+        if parsed.path == "/api/youtube":
+            qs = parse_qs(parsed.query or "")
+            q = (qs.get("q", ["electric unicycle review"])[0] or "").strip()
+
+            items = []
+            try:
+                url = "https://www.youtube.com/results?search_query=" + requests.utils.quote(q)
+                r = requests.get(url, headers=HEADERS, timeout=25)
+                r.raise_for_status()
+
+                ids = re.findall(r'videoId":"([a-zA-Z0-9_-]{11})"', r.text)
+                seen = set()
+                for vid in ids:
+                    if vid in seen:
+                        continue
+                    seen.add(vid)
+                    items.append({"videoId": vid})
+
+                    # number of youtube results on page
+                    if len(items) >= 20:
+                        break
+            except Exception:
+                items = []
+
+            payload = {"query": q, "items": items}
+            body = json.dumps(payload).encode("utf-8")
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        return super().do_GET()
 
 
 def main():
@@ -2086,9 +2438,20 @@ def main():
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(html_page)
 
-    full_path = os.path.realpath(out_file)
-    print(f"\nDone! Opening '{full_path}' in your browser to view the EUC comparison table.")
-    webbrowser.open(f"file://{full_path}")
+    # Serve locally so Video Reviews can call /api/youtube
+    server = ThreadingHTTPServer(("127.0.0.1", 0), EUCVaultHandler)  # 0 = pick free port
+    host, port = server.server_address
+
+    url = f"http://{host}:{port}/{out_file}"
+    print(f"\nDone! Opening: {url}")
+    print("NOTE: Leave this terminal running while you use Video Reviews.\n")
+    webbrowser.open(url)
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down server...")
+        server.shutdown()
 
 
 if __name__ == "__main__":

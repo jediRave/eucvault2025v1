@@ -106,7 +106,7 @@
             padding: 6px 14px;
             border-radius: 999px;
             border: 1px solid #1f2937;
-            background: #22c55e;   /* green-ish, you can tweak */
+            background: #22c55e;   /* green-ish */
             color: #0b1120;
             font-size: 0.8rem;
             font-weight: 600;
@@ -117,6 +117,45 @@
 
         #range-monitor-btn:hover {
             background: #16a34a;
+        }
+
+        /* Feedback + Compare feedback buttons (dark style) */
+        #feedback-btn,
+        .cmp-feedback-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #111827;
+            color: #e5e7eb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease-out;
+        }
+
+        #feedback-btn:hover,
+        #feedback-btn:active,
+        .cmp-feedback-btn:hover,
+        .cmp-feedback-btn:active {
+            background: #1f2937;
+        }
+
+        /* Video Reviews button (orange, with dim-on-hover like green) */
+        #video-reviews-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #f97316;   /* orange base */
+            color: #0b1120;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease-out;
+        }
+
+        #video-reviews-btn:hover,
+        #video-reviews-btn:active {
+            background: #ea580c;   /* dimmed orange */
         }
 
         #name-search-input {
@@ -201,6 +240,7 @@
         a {
             color: #38bdf8;
         }
+
         .selected-wrapper {
             display: flex;
             gap: 20px;
@@ -215,6 +255,41 @@
             top: 56px;
             z-index: 20;
         }
+
+        /* NEW: compact mode for selected banner (used when Video Reviews is active) */
+        .selected-wrapper.is-compact {
+            gap: 14px;
+            align-items: center;
+            border-radius: 10px;
+            padding: 10px 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+        .selected-wrapper.is-compact .selected-image-box {
+            width: 110px;
+            min-height: 110px;
+            max-height: 110px;
+            border-radius: 10px;
+        }
+        .selected-wrapper.is-compact .selected-title {
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .selected-wrapper.is-compact .selected-info {
+            gap: 4px;
+        }
+        .selected-wrapper.is-compact .selected-desc {
+            display: none;
+        }
+        .selected-wrapper.is-compact .selected-specs {
+            display: none;
+        }
+        .selected-wrapper.is-compact .selected-actions {
+            margin-top: 4px;
+        }
+        .selected-wrapper.is-compact .view-link {
+            margin-top: 4px;
+        }
+
         .selected-image-box {
             width: 260px;
             min-height: 180px;
@@ -251,7 +326,6 @@
             color: #9ca3af;
             margin-top: 4px;
         }
-        /* UPDATED: tighter grid so all specs fit on one line */
         .selected-specs {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -298,21 +372,7 @@
         #compare-toggle-btn.active {
             background: #22c55e;
         }
-        #feedback-btn,
-        .cmp-feedback-btn {
-            padding: 6px 14px;
-            border-radius: 999px;
-            border: 1px solid #1f2937;
-            background: #111827;
-            color: #e5e7eb;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        #feedback-btn:hover,
-        .cmp-feedback-btn:hover {
-            background: #1f2937;
-        }
+
         .compare-col {
             width: 90px;
             text-align: center;
@@ -540,6 +600,115 @@
             border: none;
             background: #020617;
         }
+
+        /* --- Video Reviews Results Panel --- */
+        .video-results-wrap {
+            display: none;
+            margin-top: 16px;
+            background: #020617;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+        }
+        .video-results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .video-results-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #e5e7eb;
+        }
+        .video-results-subtitle {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        .video-back-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #111827;
+            color: #e5e7eb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .video-back-btn:hover { background: #1f2937; }
+
+        .video-loading {
+            display: none;
+            margin: 10px 0 14px 0;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #111827;
+            background: #0b1227;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+        .video-progress {
+            height: 8px;
+            border-radius: 999px;
+            border: 1px solid #111827;
+            background: #020617;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .video-progress-fill {
+            height: 100%;
+            width: 25%;
+            background: linear-gradient(90deg, #f97316, #0ea5e9);
+            animation: videoProg 0.9s infinite alternate;
+        }
+        @keyframes videoProg {
+            from { width: 15%; opacity: 0.7; }
+            to   { width: 85%; opacity: 1; }
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 12px;
+        }
+        .video-card {
+            background: #0b1227;
+            border: 1px solid #111827;
+            border-radius: 12px;
+            padding: 10px;
+        }
+        .video-embed {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: none;
+            border-radius: 10px;
+            background: #000;
+        }
+        .video-meta {
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+        }
+        .video-meta a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .video-meta a:hover { text-decoration: underline; }
+
+        .video-empty {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            padding: 12px;
+            border: 1px dashed #1f2937;
+            border-radius: 10px;
+            background: #020617;
+        }
     </style>
 </head>
 <body>
@@ -629,6 +798,11 @@
                     Range Monitor
                 </button>
 
+                <!-- Video Reviews button -->
+                <button id="video-reviews-btn" type="button">
+                    Video Reviews
+                </button>
+
                 <button id="feedback-btn" type="button">
                     What do others say about this wheel?
                 </button>
@@ -707,22 +881,42 @@
         </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th class="compare-col">Compare</th>
-                <th class="name-col">EUC Name</th>
-                <th>Battery Capacity</th>
-                <th>Range</th>
-                <th>Speed</th>
-                <th>Motor Power</th>
-                <th>Weight</th>
-                <th>Max Load</th>
-                <th>Battery Type</th>
-            </tr>
-        </thead>
-        <tbody id="euc-tbody">
-            
+    <!-- Video results -->
+    <div class="video-results-wrap" id="video-results-wrap">
+        <div class="video-results-header">
+            <div>
+                <div class="video-results-title" id="video-results-title">Video Reviews</div>
+                <div class="video-results-subtitle" id="video-results-subtitle"></div>
+            </div>
+            <button class="video-back-btn" id="video-back-btn" type="button">Back to Specs</button>
+        </div>
+
+        <div class="video-loading" id="video-loading">
+            Searching YouTube for reviews…
+            <div class="video-progress"><div class="video-progress-fill"></div></div>
+        </div>
+
+        <div class="video-grid" id="video-grid"></div>
+    </div>
+
+    <!-- Specs table wrapper -->
+    <div id="specs-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th class="compare-col">Compare</th>
+                    <th class="name-col">EUC Name</th>
+                    <th>Battery Capacity</th>
+                    <th>Range</th>
+                    <th>Speed</th>
+                    <th>Motor Power</th>
+                    <th>Weight</th>
+                    <th>Max Load</th>
+                    <th>Battery Type</th>
+                </tr>
+            </thead>
+            <tbody id="euc-tbody">
+                
         <tr class="wheel-row"
             data-name="Begode A1"
             data-battery="180Wh"
@@ -3193,11 +3387,12 @@
             <td>Samsung 50</td>
         </tr>
         
-        </tbody>
-    </table>
-    <p class="small">
-        NOTE: This is a best-effort scraper. Always double-check critical specs on the original product pages before buying.
-    </p>
+            </tbody>
+        </table>
+        <p class="small">
+            NOTE: This is a best-effort scraper. Always double-check critical specs on the original product pages before buying.
+        </p>
+    </div>
 </div>
 
 <div class="feedback-modal-overlay" id="feedback-overlay">
@@ -3221,7 +3416,6 @@
             <button class="range-close-btn" id="range-close-btn" type="button">✕</button>
         </div>
         <div class="range-modal-body">
-            <!-- src is set in JS on first open -->
             <iframe id="range-iframe" src="" frameborder="0"></iframe>
         </div>
     </div>
@@ -3277,6 +3471,13 @@
             .replace(/'/g, "&#39;");
     }
 
+    // NEW: selected banner compact toggle
+    function setSelectedCompact(on) {
+        const wrap = document.getElementById('selected-wrapper');
+        if (!wrap) return;
+        wrap.classList.toggle('is-compact', !!on);
+    }
+
     function renderFeedbackList() {
         const listEl = document.getElementById('feedback-list');
         listEl.innerHTML = "";
@@ -3306,6 +3507,114 @@
         const overlay = document.getElementById('feedback-overlay');
         overlay.style.display = 'none';
         document.body.style.overflow = '';
+    }
+
+    // ---------------- Video Reviews panel (replaces table below) ----------------
+
+    function showVideoPanel(wheelName) {
+        const specsWrap = document.getElementById('specs-table-wrap');
+        const videoWrap = document.getElementById('video-results-wrap');
+        const titleEl   = document.getElementById('video-results-title');
+        const subEl     = document.getElementById('video-results-subtitle');
+
+        if (specsWrap) specsWrap.style.display = 'none';
+        if (videoWrap) videoWrap.style.display = 'block';
+
+        if (titleEl) titleEl.textContent = 'Video Reviews';
+        if (subEl) subEl.textContent = (wheelName ? wheelName + ' — YouTube results' : 'YouTube results');
+
+        // NEW: shrink selected banner while Video Reviews is active
+        setSelectedCompact(true);
+    }
+
+    function hideVideoPanel() {
+        const specsWrap = document.getElementById('specs-table-wrap');
+        const videoWrap = document.getElementById('video-results-wrap');
+        const grid      = document.getElementById('video-grid');
+        const loading   = document.getElementById('video-loading');
+
+        if (videoWrap) videoWrap.style.display = 'none';
+        if (specsWrap) specsWrap.style.display = 'block';
+        if (grid) grid.innerHTML = '';
+        if (loading) loading.style.display = 'none';
+
+        // NEW: restore selected banner to full size
+        setSelectedCompact(false);
+    }
+
+    function renderVideoResults(wheelName, items) {
+        const grid = document.getElementById('video-grid');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
+        if (!items || !items.length) {
+            grid.innerHTML = '<div class="video-empty">No videos found. Try a different search phrase.</div>';
+            return;
+        }
+
+        items.forEach(v => {
+            const vid = v.videoId;
+            if (!vid) return;
+
+            const card = document.createElement('div');
+            card.className = 'video-card';
+
+            const iframe = document.createElement('iframe');
+            iframe.className = 'video-embed';
+            iframe.src = 'https://www.youtube.com/embed/' + encodeURIComponent(vid);
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframe.allowFullscreen = true;
+
+            const meta = document.createElement('div');
+            meta.className = 'video-meta';
+
+            const a = document.createElement('a');
+            a.href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(vid);
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.textContent = 'Open on YouTube';
+
+            const small = document.createElement('div');
+            small.className = 'small';
+            small.textContent = wheelName ? wheelName : '';
+
+            meta.appendChild(a);
+            meta.appendChild(small);
+
+            card.appendChild(iframe);
+            card.appendChild(meta);
+            grid.appendChild(card);
+        });
+    }
+
+    async function openVideoReviews(wheelName) {
+        const loading = document.getElementById('video-loading');
+        const grid = document.getElementById('video-grid');
+
+        showVideoPanel(wheelName);
+
+        if (grid) grid.innerHTML = '';
+        if (loading) loading.style.display = 'block';
+
+        const q = (wheelName || 'electric unicycle') + ' review';
+        const apiUrl = '/api/youtube?q=' + encodeURIComponent(q);
+
+        try {
+            const resp = await fetch(apiUrl, { cache: "no-store" });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+
+            if (loading) loading.style.display = 'none';
+            renderVideoResults(wheelName, data.items || []);
+        } catch (err) {
+            if (loading) loading.style.display = 'none';
+            if (grid) {
+                grid.innerHTML =
+                    '<div class="video-empty">Could not load YouTube results. ' +
+                    'Make sure you opened the page from the local server (http://127.0.0.1:PORT) not file://</div>';
+            }
+        }
     }
 
     // ------------- numeric parsing helpers (for Range Monitor & spec bars) -------------
@@ -3345,12 +3654,10 @@
         const values = nums.map(parseFloat).filter(v => !Number.isNaN(v));
         if (!values.length) return 40;
 
-        // If two numbers with dash / "to" → average
         if (values.length === 2 && /-|–|to/i.test(rangeStr)) {
             return (values[0] + values[1]) / 2;
         }
 
-        // Else largest number
         const max = values.reduce((a, b) => Math.max(a, b), values[0]);
         return max;
     }
@@ -3391,7 +3698,7 @@
 
     function parseMotorW(motorStr) {
         if (!motorStr) return 2000;
-        const m = String(motorStr).match(/(\d[\d,]*)\s*W/i);
+        const m = String(motorStr).match(/(\d[\d,]*)\s*W\b/i);
         if (m) {
             return parseInt(m[1].replace(/,/g, ""), 10);
         }
@@ -3415,7 +3722,6 @@
         };
     }
 
-    // UPDATED: numeric preset for the Range Monitor page, including imageUrl
     function buildRangePresetFromRow(row) {
         if (!row) return null;
 
@@ -3431,7 +3737,6 @@
         const topSpeed     = parseSpeedMph(speed);
         const wheelWeight  = parseWeightLbs(weight);
 
-        // Rider weight is a user thing; we just give a sane default
         const riderWeight  = 180;
 
         return {
@@ -3441,12 +3746,10 @@
             topSpeed: topSpeed,
             wheelWeight: wheelWeight,
             riderWeight: riderWeight,
-            // this is what the Range Monitor page will use to show the wheel image
             imageUrl: image
         };
     }
 
-    // NEW: send the current wheel preset to the Range Monitor (iframe or external window)
     function sendWheelToRangeMonitor() {
         if (!currentRangePreset) return;
 
@@ -3457,12 +3760,10 @@
 
         const iframe = document.getElementById('range-iframe');
 
-        // If the iframe exists and is loaded, use postMessage
         if (iframe && iframe.contentWindow) {
             iframe.contentWindow.postMessage(message, "*");
         }
 
-        // Also try posting to the external window (file:// fallback)
         if (rangeMonitorWindow && !rangeMonitorWindow.closed) {
             rangeMonitorWindow.postMessage(message, "*");
         }
@@ -3476,7 +3777,6 @@
         const isHttp = (location.protocol === 'http:' || location.protocol === 'https:');
 
         if (isHttp) {
-            // Ensure we have a load handler bound once, BEFORE setting src
             if (!iframe.dataset.bound) {
                 iframe.addEventListener('load', function() {
                     sendWheelToRangeMonitor();
@@ -3484,27 +3784,20 @@
                 iframe.dataset.bound = '1';
             }
 
-            // When served over HTTP(S), load inside the iframe (once)
             if (!iframe.dataset.loaded) {
-                iframe.src = 'euc_realistic_range.html';  // relative to euc_table.html
+                iframe.src = 'euc_realistic_range.html';
                 iframe.dataset.loaded = '1';
             } else {
-                // Already loaded, just send the current wheel
                 sendWheelToRangeMonitor();
             }
 
             overlay.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         } else {
-            // file:// fallback
             rangeMonitorWindow = window.open('euc_realistic_range.html', 'EUC_RangeMonitor');
 
             setTimeout(function() {
-                try {
-                    sendWheelToRangeMonitor();
-                } catch (err) {
-                    // ignore if window not ready
-                }
+                try { sendWheelToRangeMonitor(); } catch (err) {}
             }, 700);
         }
     }
@@ -3536,6 +3829,15 @@
     }
 
     function updateSelected(row) {
+        // If video panel is open, go back to specs when changing selection
+        const videoWrap = document.getElementById('video-results-wrap');
+        if (videoWrap && videoWrap.style.display === 'block') {
+            hideVideoPanel();
+        }
+
+        // NEW: ensure full-size banner when selecting a wheel
+        setSelectedCompact(false);
+
         document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-row'));
         row.classList.add('active-row');
 
@@ -3580,7 +3882,6 @@
             imgBox.appendChild(div);
         }
 
-        // update globals for Range Monitor + other use
         currentWheelPayload = buildWheelPayloadFromRow(row);
         currentRangePreset  = buildRangePresetFromRow(row);
     }
@@ -3643,7 +3944,6 @@
             imgBox.appendChild(div);
         }
 
-        // numeric values for level bars
         const batteryWh = parseBatteryWh(battery);
         const rangeMi   = parseRangeMiles(range);
         const speedMph  = parseSpeedMph(speed);
@@ -3651,7 +3951,6 @@
         const weightLb  = parseWeightLbs(weight);
         const maxLoadLb = parseWeightLbs(maxload);
 
-        // rough maxes for normalization – tweak as you like
         setSpecBar('cmp-battery-bar', batteryWh, 4000);
         setSpecBar('cmp-range-bar',   rangeMi,   120);
         setSpecBar('cmp-speed-bar',   speedMph,  55);
@@ -3707,7 +4006,6 @@
     function setSource(newSource) {
         currentSource = newSource || 'ewheels';
 
-        // Toggle topbar button styles
         document.querySelectorAll('.topbar-link').forEach(btn => {
             const src = btn.dataset.distributor;
             const active = (src === currentSource);
@@ -3734,8 +4032,6 @@
             currentRangePreset  = null;
         }
     }
-
-    // -------- Helper: collect rows as plain objects --------
 
     function buildRowData(row) {
         return {
@@ -3768,7 +4064,6 @@
     }
 
     // -------- Search results window --------
-
     function openSearchResultsPage(allRowsData, initialQueryLabel, initialQueryValue) {
         const win = window.open('', '_blank');
         if (!win) {
@@ -3895,7 +4190,6 @@
         doc.close();
     }
 
-    // Main-page search: always uses full dataset
     function performNameSearch() {
         const inputEl = document.getElementById('name-search-input');
         const selectEl = document.getElementById('name-search-select');
@@ -3954,6 +4248,26 @@
             });
         }
 
+        // Video Reviews button click (renders below, replaces table)
+        const videoReviewsBtn = document.getElementById('video-reviews-btn');
+        if (videoReviewsBtn) {
+            videoReviewsBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const nameEl = document.getElementById('sel-name');
+                const wheelName = nameEl ? nameEl.textContent.trim() : 'Electric Unicycle';
+                openVideoReviews(wheelName);
+            });
+        }
+
+        // Back to specs button
+        const backBtn = document.getElementById('video-back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                hideVideoPanel();
+            });
+        }
+
         const cmpFeedbackBtn = document.querySelector('.cmp-feedback-btn');
         if (cmpFeedbackBtn) {
             cmpFeedbackBtn.addEventListener('click', function(e) {
@@ -4002,7 +4316,6 @@
             });
         }
 
-        // Range Monitor popup
         const rangeBtn = document.getElementById('range-monitor-btn');
         if (rangeBtn) {
             rangeBtn.addEventListener('click', function(e) {
@@ -4028,7 +4341,6 @@
             });
         }
 
-        // Distributor buttons – switch data sets in-place
         document.querySelectorAll('.topbar-link').forEach(btn => {
             btn.addEventListener('click', function() {
                 const src = btn.dataset.distributor;
@@ -4038,7 +4350,6 @@
             });
         });
 
-        // Populate dropdown with all unique wheel names
         const selectEl = document.getElementById('name-search-select');
         const inputEl = document.getElementById('name-search-input');
         if (selectEl) {
@@ -4056,7 +4367,6 @@
             });
         }
 
-        // Hook search button and Enter key
         const searchBtn = document.getElementById('name-search-btn');
         if (searchBtn) {
             searchBtn.addEventListener('click', function(e) {
@@ -4073,7 +4383,6 @@
             });
         }
 
-        // Initial setup
         setCompareMode(false);
         setSource(currentSource || 'ewheels');
     });
