@@ -2434,7 +2434,7 @@ def main():
     eucs = [parse_product_page(p) for p in all_products]
 
     html_page = build_html_table(eucs)
-    out_file = "euc_table.html"
+    out_file = "index.html"
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(html_page)
 

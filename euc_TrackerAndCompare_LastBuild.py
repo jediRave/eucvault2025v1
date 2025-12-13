@@ -692,6 +692,7 @@ def build_html_table(eucs):
         a {
             color: #38bdf8;
         }
+
         .selected-wrapper {
             display: flex;
             gap: 20px;
@@ -706,6 +707,41 @@ def build_html_table(eucs):
             top: 56px;
             z-index: 20;
         }
+
+        /* NEW: compact mode for selected banner (used when Video Reviews is active) */
+        .selected-wrapper.is-compact {
+            gap: 14px;
+            align-items: center;
+            border-radius: 10px;
+            padding: 10px 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+        .selected-wrapper.is-compact .selected-image-box {
+            width: 110px;
+            min-height: 110px;
+            max-height: 110px;
+            border-radius: 10px;
+        }
+        .selected-wrapper.is-compact .selected-title {
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .selected-wrapper.is-compact .selected-info {
+            gap: 4px;
+        }
+        .selected-wrapper.is-compact .selected-desc {
+            display: none;
+        }
+        .selected-wrapper.is-compact .selected-specs {
+            display: none;
+        }
+        .selected-wrapper.is-compact .selected-actions {
+            margin-top: 4px;
+        }
+        .selected-wrapper.is-compact .view-link {
+            margin-top: 4px;
+        }
+
         .selected-image-box {
             width: 260px;
             min-height: 180px;
@@ -1214,7 +1250,7 @@ def build_html_table(eucs):
                     Range Monitor
                 </button>
 
-                <!-- UPDATED: Video Reviews button now renders below -->
+                <!-- Video Reviews button -->
                 <button id="video-reviews-btn" type="button">
                     Video Reviews
                 </button>
@@ -1297,7 +1333,7 @@ def build_html_table(eucs):
         </div>
     </div>
 
-    <!-- NEW: Video results (replaces the table when active) -->
+    <!-- Video results -->
     <div class="video-results-wrap" id="video-results-wrap">
         <div class="video-results-header">
             <div>
@@ -1315,7 +1351,7 @@ def build_html_table(eucs):
         <div class="video-grid" id="video-grid"></div>
     </div>
 
-    <!-- Specs table wrapper (hidden when Video Reviews is active) -->
+    <!-- Specs table wrapper -->
     <div id="specs-table-wrap">
         <table>
             <thead>
@@ -1417,6 +1453,13 @@ def build_html_table(eucs):
             .replace(/'/g, "&#39;");
     }
 
+    // NEW: selected banner compact toggle
+    function setSelectedCompact(on) {
+        const wrap = document.getElementById('selected-wrapper');
+        if (!wrap) return;
+        wrap.classList.toggle('is-compact', !!on);
+    }
+
     function renderFeedbackList() {
         const listEl = document.getElementById('feedback-list');
         listEl.innerHTML = "";
@@ -1461,6 +1504,9 @@ def build_html_table(eucs):
 
         if (titleEl) titleEl.textContent = 'Video Reviews';
         if (subEl) subEl.textContent = (wheelName ? wheelName + ' — YouTube results' : 'YouTube results');
+
+        // NEW: shrink selected banner while Video Reviews is active
+        setSelectedCompact(true);
     }
 
     function hideVideoPanel() {
@@ -1473,6 +1519,9 @@ def build_html_table(eucs):
         if (specsWrap) specsWrap.style.display = 'block';
         if (grid) grid.innerHTML = '';
         if (loading) loading.style.display = 'none';
+
+        // NEW: restore selected banner to full size
+        setSelectedCompact(false);
     }
 
     function renderVideoResults(wheelName, items) {
@@ -1768,6 +1817,9 @@ def build_html_table(eucs):
             hideVideoPanel();
         }
 
+        // NEW: ensure full-size banner when selecting a wheel
+        setSelectedCompact(false);
+
         document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-row'));
         row.classList.add('active-row');
 
@@ -1994,7 +2046,6 @@ def build_html_table(eucs):
     }
 
     // -------- Search results window --------
-
     function openSearchResultsPage(allRowsData, initialQueryLabel, initialQueryValue) {
         const win = window.open('', '_blank');
         if (!win) {
@@ -2179,7 +2230,7 @@ def build_html_table(eucs):
             });
         }
 
-        // UPDATED: Video Reviews button click (renders below, replaces table)
+        // Video Reviews button click (renders below, replaces table)
         const videoReviewsBtn = document.getElementById('video-reviews-btn');
         if (videoReviewsBtn) {
             videoReviewsBtn.addEventListener('click', function(e) {
@@ -2352,8 +2403,8 @@ class EUCVaultHandler(SimpleHTTPRequestHandler):
                         continue
                     seen.add(vid)
                     items.append({"videoId": vid})
-                    
-                    #number of youtube results on page
+
+                    # number of youtube results on page
                     if len(items) >= 20:
                         break
             except Exception:

@@ -1,0 +1,4392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>EUC Vault – Multi-Distributor</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #020617;
+            color: #e5e7eb;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Top menu bar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: #020617;
+            border-bottom: 1px solid #1f2937;
+            overflow: visible; /* allow logo to overhang */
+        }
+        .topbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .topbar-left {
+            position: relative; /* anchor for overhang logo */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #e5e7eb;
+            white-space: nowrap;
+        }
+
+        /* Overhang logo wrapper */
+        .logo-overhang {
+            position: absolute;
+            left: 0;
+            bottom: -45px;  /* how far logo hangs below the bar */
+        }
+
+        /* Logo itself */
+        .navbar-logo {
+            height: 64px;  /* adjust for bigger/smaller badge */
+            width: auto;
+            display: block;
+        }
+
+        /* Text next to logo */
+        .topbar-title {
+            margin-left: 80px; /* push text to the right of the logo */
+        }
+
+        .topbar-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .topbar-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #e5e7eb;
+            background: #0f172a;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .topbar-link-active {
+            background: #0ea5e9;
+            color: #f9fafb;
+            opacity: 1;
+        }
+        .topbar-link-disabled {
+            opacity: 0.5;
+        }
+
+        /* Search area in top bar */
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .topbar-search {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        #range-monitor-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #22c55e;   /* green-ish */
+            color: #0b1120;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        #range-monitor-btn:hover {
+            background: #16a34a;
+        }
+
+        /* Feedback + Compare feedback buttons (dark style) */
+        #feedback-btn,
+        .cmp-feedback-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #111827;
+            color: #e5e7eb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease-out;
+        }
+
+        #feedback-btn:hover,
+        #feedback-btn:active,
+        .cmp-feedback-btn:hover,
+        .cmp-feedback-btn:active {
+            background: #1f2937;
+        }
+
+        /* Video Reviews button (orange, with dim-on-hover like green) */
+        #video-reviews-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #f97316;   /* orange base */
+            color: #0b1120;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease-out;
+        }
+
+        #video-reviews-btn:hover,
+        #video-reviews-btn:active {
+            background: #ea580c;   /* dimmed orange */
+        }
+
+        #name-search-input {
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #020617;
+            color: #e5e7eb;
+            font-size: 0.8rem;
+            min-width: 160px;
+        }
+        #name-search-select {
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #020617;
+            color: #e5e7eb;
+            font-size: 0.8rem;
+            max-width: 220px;
+        }
+        #name-search-btn {
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #22c55e;
+            color: #0b1120;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        h1 {
+            color: #38bdf8;
+        }
+        .subtitle {
+            color: #9ca3af;
+            margin-bottom: 1rem;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        th, td {
+            border: 1px solid #1f2937;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        th {
+            background: #0f172a;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        tr:nth-child(even) {
+            background: #020617;
+        }
+        tr:nth-child(odd) {
+            background: #020617;
+        }
+        tr:hover {
+            background: #111827;
+        }
+        .active-row {
+            background: #1d283a !important;
+        }
+        .name-col {
+            min-width: 220px;
+            font-weight: 600;
+        }
+        .small {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        a {
+            color: #38bdf8;
+        }
+
+        .selected-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+            background: #020617;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            position: sticky;
+            top: 56px;
+            z-index: 20;
+        }
+
+        /* NEW: compact mode for selected banner (used when Video Reviews is active) */
+        .selected-wrapper.is-compact {
+            gap: 14px;
+            align-items: center;
+            border-radius: 10px;
+            padding: 10px 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+        .selected-wrapper.is-compact .selected-image-box {
+            width: 110px;
+            min-height: 110px;
+            max-height: 110px;
+            border-radius: 10px;
+        }
+        .selected-wrapper.is-compact .selected-title {
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .selected-wrapper.is-compact .selected-info {
+            gap: 4px;
+        }
+        .selected-wrapper.is-compact .selected-desc {
+            display: none;
+        }
+        .selected-wrapper.is-compact .selected-specs {
+            display: none;
+        }
+        .selected-wrapper.is-compact .selected-actions {
+            margin-top: 4px;
+        }
+        .selected-wrapper.is-compact .view-link {
+            margin-top: 4px;
+        }
+
+        .selected-image-box {
+            width: 260px;
+            min-height: 180px;
+            background: radial-gradient(circle at top, #1e293b, #020617);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .selected-image-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .no-image {
+            color: #6b7280;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 20px;
+        }
+        .selected-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .selected-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .selected-desc {
+            font-size: 0.9rem;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+        .selected-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 4px 10px;
+            margin-top: 8px;
+        }
+        .spec-label {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        .spec-value {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .view-link {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: #0f172a;
+            border: 1px solid #1f2937;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        .selected-actions {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        #compare-toggle-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #0ea5e9;
+            color: #f9fafb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #compare-toggle-btn.active {
+            background: #22c55e;
+        }
+
+        .compare-col {
+            width: 90px;
+            text-align: center;
+        }
+        .compare-btn {
+            display: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: none;
+            background: #f97316;
+            color: #111827;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .compare-btn.show {
+            display: inline-block;
+        }
+
+        /* --- COMPACT COMPARE BANNER --- */
+        .compare-wrapper {
+            display: none;
+            gap: 14px;
+            align-items: center;
+            background: #020617;
+            border: 1px solid #1f2937;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-top: 10px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 240px;
+            z-index: 19;
+        }
+        .compare-wrapper .selected-image-box {
+            width: 110px;
+            min-height: 110px;
+            max-height: 110px;
+            border-radius: 10px;
+        }
+        .compare-wrapper .selected-title {
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .compare-wrapper .selected-info {
+            gap: 4px;
+        }
+
+        .compare-specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 4px 12px;
+            margin-top: 4px;
+        }
+        .compare-spec-block {
+            font-size: 0.8rem;
+        }
+        .compare-spec-block .spec-label {
+            font-size: 0.75rem;
+        }
+        .spec-main {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .spec-bar {
+            height: 4px;
+            border-radius: 999px;
+            background: #020617;
+            overflow: hidden;
+            border: 1px solid #111827;
+        }
+        .spec-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #22c55e, #0ea5e9);
+            transition: width 0.25s ease-out;
+        }
+
+        .compare-banner-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #f97316;
+            color: #111827;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .compare-clear-btn {
+            margin-left: 4px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #ef4444;
+            color: #f9fafb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .feedback-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        .feedback-modal {
+            background: #020617;
+            border-radius: 12px;
+            border: 1f2937;
+            max-width: 600px;
+            width: 90%;
+            max-height: 70vh;
+            padding: 16px 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .feedback-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        .feedback-modal-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .feedback-modal-wheel {
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+        .feedback-close-btn {
+            border: none;
+            background: #111827;
+            color: #e5e7eb;
+            border-radius: 999px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .feedback-close-btn:hover {
+            background: #1f2937;
+        }
+        .feedback-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            border-top: 1px solid #111827;
+            border-bottom: 1px solid #111827;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+        .feedback-item {
+            font-size: 0.9rem;
+            padding: 6px 0;
+            border-bottom: 1px solid #020617;
+        }
+
+        /* Range Monitor modal */
+        .range-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+        }
+        .range-modal {
+            background: #020617;
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+            max-width: 1100px;
+            width: 95%;
+            max-height: 80vh;
+            padding: 12px 14px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .range-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .range-modal-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .range-close-btn {
+            border: none;
+            background: #111827;
+            color: #e5e7eb;
+            border-radius: 999px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .range-close-btn:hover {
+            background: #1f2937;
+        }
+        .range-modal-body {
+            flex: 1;
+            min-height: 480px;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid #111827;
+        }
+        .range-modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #020617;
+        }
+
+        /* --- Video Reviews Results Panel --- */
+        .video-results-wrap {
+            display: none;
+            margin-top: 16px;
+            background: #020617;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+        }
+        .video-results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .video-results-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #e5e7eb;
+        }
+        .video-results-subtitle {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        .video-back-btn {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            background: #111827;
+            color: #e5e7eb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .video-back-btn:hover { background: #1f2937; }
+
+        .video-loading {
+            display: none;
+            margin: 10px 0 14px 0;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #111827;
+            background: #0b1227;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+        .video-progress {
+            height: 8px;
+            border-radius: 999px;
+            border: 1px solid #111827;
+            background: #020617;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .video-progress-fill {
+            height: 100%;
+            width: 25%;
+            background: linear-gradient(90deg, #f97316, #0ea5e9);
+            animation: videoProg 0.9s infinite alternate;
+        }
+        @keyframes videoProg {
+            from { width: 15%; opacity: 0.7; }
+            to   { width: 85%; opacity: 1; }
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 12px;
+        }
+        .video-card {
+            background: #0b1227;
+            border: 1px solid #111827;
+            border-radius: 12px;
+            padding: 10px;
+        }
+        .video-embed {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: none;
+            border-radius: 10px;
+            background: #000;
+        }
+        .video-meta {
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+        }
+        .video-meta a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .video-meta a:hover { text-decoration: underline; }
+
+        .video-empty {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            padding: 12px;
+            border: 1px dashed #1f2937;
+            border-radius: 10px;
+            background: #020617;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-inner">
+        <div class="topbar-left">
+            <div class="logo-overhang">
+                <img src="EUCVault_Logo.png" class="navbar-logo" alt="EUC Vault Logo">
+            </div>
+        </div>
+        <div class="topbar-links">
+            <button class="topbar-link topbar-link-active"
+                    type="button"
+                    data-distributor="ewheels">
+                eWheels
+            </button>
+            <button class="topbar-link topbar-link-disabled"
+                    type="button"
+                    data-distributor="alien">
+                Alien Rides
+            </button>
+            <button class="topbar-link topbar-link-disabled"
+                    type="button"
+                    data-distributor="nextgen">
+                NextGen M
+            </button>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-search">
+                <input id="name-search-input" type="text" placeholder="Search wheel name..." />
+                <select id="name-search-select">
+                    <option value="">Or pick a wheel…</option>
+                </select>
+                <button id="name-search-btn" type="button">Search</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h1>EUC Vault Table</h1>
+    <div class="subtitle">
+        Data scraped from <span id="subtitle-source-label">eWheels – All Vehicles</span>.
+        Missing or unavailable values are shown as <strong>N/A</strong>.
+    </div>
+
+    <!-- MAIN selected wheel banner (pinned) -->
+    <div class="selected-wrapper" id="selected-wrapper">
+        <div class="selected-image-box" id="selected-image-box"></div>
+        <div class="selected-info">
+            <div class="selected-title" id="sel-name">Begode A1</div>
+            <div class="badge" id="sel-battype-badge">Samsung 50</div>
+            <div class="selected-desc" id="sel-desc">In Stock, Shipping Now! Price: just $499, less then the MTen Mini for similar specs and a larger, more stable tire What&#x27;s New: 14&quot; Wheel, weighing only ~29lb with a width less than 5 inches. Designed to be ultra-portable and beginner friendly Motor: 800W motor, sufficient for low speed riding Battery Pack: high-dischar</div>
+            <div class="selected-specs">
+                <div>
+                    <div class="spec-label">Battery</div>
+                    <div class="spec-value" id="sel-battery">180Wh</div>
+                </div>
+                <div>
+                    <div class="spec-label">Range</div>
+                    <div class="spec-value" id="sel-range">5-7 MILES</div>
+                </div>
+                <div>
+                    <div class="spec-label">Top Speed</div>
+                    <div class="spec-value" id="sel-speed">~10-12 MPH</div>
+                </div>
+                <div>
+                    <div class="spec-label">Motor Power</div>
+                    <div class="spec-value" id="sel-motor">800W</div>
+                </div>
+                <div>
+                    <div class="spec-label">Weight</div>
+                    <div class="spec-value" id="sel-weight">29.4lb</div>
+                </div>
+                <div>
+                    <div class="spec-label">Max Load</div>
+                    <div class="spec-value" id="sel-maxload">220lb</div>
+                </div>
+            </div>
+
+            <div class="selected-actions">
+                <button id="compare-toggle-btn" type="button">Compare EUC</button>
+
+                <!-- Range Monitor button -->
+                <button id="range-monitor-btn" type="button">
+                    Range Monitor
+                </button>
+
+                <!-- Video Reviews button -->
+                <button id="video-reviews-btn" type="button">
+                    Video Reviews
+                </button>
+
+                <button id="feedback-btn" type="button">
+                    What do others say about this wheel?
+                </button>
+            </div>
+
+            <div class="view-link">
+                <a href="https://ewheels.com/products/begode-a1-180wh-battery-800w-motor" target="_blank" id="sel-url">
+                    View this wheel →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPACT comparison popup banner (starts hidden) -->
+    <div class="compare-wrapper" id="compare-wrapper">
+        <div class="selected-image-box" id="cmp-image-box"></div>
+        <div class="selected-info">
+            <div class="selected-title" id="cmp-name">Comparison EUC</div>
+            <div class="badge" id="cmp-battype-badge">Battery Type N/A</div>
+
+            <div class="compare-specs-grid">
+                <div class="compare-spec-block">
+                    <div class="spec-label">Battery</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-battery">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-battery-bar"></div></div>
+                    </div>
+                </div>
+                <div class="compare-spec-block">
+                    <div class="spec-label">Range</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-range">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-range-bar"></div></div>
+                    </div>
+                </div>
+                <div class="compare-spec-block">
+                    <div class="spec-label">Top Speed</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-speed">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-speed-bar"></div></div>
+                    </div>
+                </div>
+                <div class="compare-spec-block">
+                    <div class="spec-label">Motor Power</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-motor">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-motor-bar"></div></div>
+                    </div>
+                </div>
+                <div class="compare-spec-block">
+                    <div class="spec-label">Weight</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-weight">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-weight-bar"></div></div>
+                    </div>
+                </div>
+                <div class="compare-spec-block">
+                    <div class="spec-label">Max Load</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="cmp-maxload">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="cmp-maxload-bar"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="selected-actions">
+                <button class="compare-banner-btn" type="button">Compare</button>
+                <button class="compare-clear-btn" type="button">Remove</button>
+                <button class="cmp-feedback-btn" type="button">
+                    What do others say about this wheel?
+                </button>
+            </div>
+            <div class="view-link">
+                <a href="#" target="_blank" id="cmp-url">View this wheel →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video results -->
+    <div class="video-results-wrap" id="video-results-wrap">
+        <div class="video-results-header">
+            <div>
+                <div class="video-results-title" id="video-results-title">Video Reviews</div>
+                <div class="video-results-subtitle" id="video-results-subtitle"></div>
+            </div>
+            <button class="video-back-btn" id="video-back-btn" type="button">Back to Specs</button>
+        </div>
+
+        <div class="video-loading" id="video-loading">
+            Searching YouTube for reviews…
+            <div class="video-progress"><div class="video-progress-fill"></div></div>
+        </div>
+
+        <div class="video-grid" id="video-grid"></div>
+    </div>
+
+    <!-- Specs table wrapper -->
+    <div id="specs-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th class="compare-col">Compare</th>
+                    <th class="name-col">EUC Name</th>
+                    <th>Battery Capacity</th>
+                    <th>Range</th>
+                    <th>Speed</th>
+                    <th>Motor Power</th>
+                    <th>Weight</th>
+                    <th>Max Load</th>
+                    <th>Battery Type</th>
+                </tr>
+            </thead>
+            <tbody id="euc-tbody">
+                
+        <tr class="wheel-row"
+            data-name="Begode A1"
+            data-battery="180Wh"
+            data-range="5-7 MILES"
+            data-speed="~10-12 MPH"
+            data-motor="800W"
+            data-weight="29.4lb"
+            data-maxload="220lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-a1-180wh-battery-800w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/A1--Front-Oblique-Right.jpg?v=1743100619&amp;width=2048"
+            data-desc="In Stock, Shipping Now! Price: just $499, less then the MTen Mini for similar specs and a larger, more stable tire What&#x27;s New: 14&quot; Wheel, weighing only ~29lb with a width less than 5 inches. Designed to be ultra-portable and beginner friendly Motor: 800W motor, sufficient for low speed riding Battery Pack: high-dischar"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode A1</td>
+            <td>180Wh</td>
+            <td>5-7 MILES</td>
+            <td>~10-12 MPH</td>
+            <td>800W</td>
+            <td>29.4lb</td>
+            <td>220lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode A2 Electric Unicycle On sale from $899 Sale View"
+            data-battery="N/A"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="750W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-a2-waterproof-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/A2new_1200x1200.png?v=1701903974"
+            data-desc="Begode A2: Compact, Powerful, and Built for the City High-Capacity Battery Powered by an 84V system with 750 watt-hours of capacity, the Begode A2 offers an impressive range in a compact package. Whether you&#x27;re commuting to work or setting out on an adventure, this unicycle provides the endurance needed for long rides."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode A2 Electric Unicycle On sale from $899 Sale View</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>750W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode A2/A2+"
+            data-battery="750WH"
+            data-range="30 MILES"
+            data-speed="23-25 MPH TBD"
+            data-motor="1000W"
+            data-weight="41 LBS"
+            data-maxload="220 LBS"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-a2"
+            data-image="http://ewheels.com/cdn/shop/files/begode-a2-electric-unicycle-front.jpg?v=1716568607&amp;width=2048"
+            data-desc="A2 &amp;amp; A2+ in stock, choice of street/knobby tires Cruising Speed: ~23-25MPH Motor: 1,000W high-torque motor, a no-load max rotational speed of 33 MPH (not riding speed!) Features: Highly water resistant, spiked pedals, tubeless 15″ tires, matrix-style tail lights, upgraded display, upgraded metal reinforced chassis"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode A2/A2+</td>
+            <td>750WH</td>
+            <td>30 MILES</td>
+            <td>23-25 MPH TBD</td>
+            <td>1000W</td>
+            <td>41 LBS</td>
+            <td>220 LBS</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode A5 Electric Unicycle / &quot;Liquidation Sale&quot; Regular price $1"
+            data-battery="N/A"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="750W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-a5-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/D6606E01-254C-45E8-BFFB-9CF27B799100_1200x1200.webp?v=1749256351"
+            data-desc="The A5 is here, an ultra portable and refined electric unicycle from Begode."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode A5 Electric Unicycle / &quot;Liquidation Sale&quot; Regular price $1</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>750W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Blitz"
+            data-battery="2,400Wh"
+            data-range="60 MILES"
+            data-speed="~55+MPH"
+            data-motor="3500W"
+            data-weight="79.1lb"
+            data-maxload="300lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-blitz-2-400wh-battery-3-500w-motor-8kw-peak"
+            data-image="http://ewheels.com/cdn/shop/files/Blitz_-Front-Oblique-Right.jpg?v=1720633155&amp;width=2048"
+            data-desc="In Stock and shipping now! Each Blitz will come with a set of Beidou power pads. Weight: Begode&#x27;s principle objective with the Blitz was to produce a &#x27;ground-up&#x27; new design with a total emphasis on weight reduction. Comparing the previous generation Master V4 (94.8lb), the Blitz (79.1lb) shedding 15.7lb, while packing"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Blitz</td>
+            <td>2,400Wh</td>
+            <td>60 MILES</td>
+            <td>~55+MPH</td>
+            <td>3500W</td>
+            <td>79.1lb</td>
+            <td>300lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode ET Max Electric Unicycle Sold Out View"
+            data-battery="3000Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3000W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-et-max-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/etmax_1200x1200.png?v=1709499455"
+            data-desc="A Refined Ride Experience Experience the thrill of speed like never before with the Begode ET MAX Electric Unicycle. Designed by the innovative Begode team, this unicycle combines years of scientific research and advanced technology to deliver unparalleled performance. Feel the rush of power with its 168V high-voltage"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode ET Max Electric Unicycle Sold Out View</td>
+            <td>3000Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3000W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode EX.N"
+            data-battery="2,700WH"
+            data-range="100 -140 Miles"
+            data-speed="~45 MPH"
+            data-motor="2800W"
+            data-weight="72.8 lbs"
+            data-maxload="325 LBS"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-ex-n-2700wh-battery-2800w-motor"
+            data-image="http://ewheels.com/cdn/shop/products/EX.N-Front-Oblique-Right_6fe4d61c-b486-4e4b-8d40-43b65913fb1c.jpg?v=1669861957&amp;width=2048"
+            data-desc="– BONUS: fitted with die-cast 13.1″ pedals &amp;amp; knobby CST-186 tire- Latest version with the black controller, improved ‘small bearings’ &amp;amp; better water resistance- Shipped with our exclusive LiTech battery packs with the upgraded P42A Molicel cells- Bonus: wrist-guards included as standard with all our Electric Un"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode EX.N</td>
+            <td>2,700WH</td>
+            <td>100 -140 Miles</td>
+            <td>~45 MPH</td>
+            <td>2800W</td>
+            <td>72.8 lbs</td>
+            <td>325 LBS</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode EX20S"
+            data-battery="3,600WH"
+            data-range="100 miles"
+            data-speed="45 mph"
+            data-motor="3000W"
+            data-weight="103 lbs"
+            data-maxload="265 LBS"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-ex20s"
+            data-image="http://ewheels.com/cdn/shop/products/EX20S-Oblique-Front-Right.jpg?v=1669861779&amp;width=2048"
+            data-desc="In Stock Battery Pack: Equipped with the improved LiTech-built battery packs3,600Wh battery pack with the Samsung 50E cells, or 2,8800Wh consisting of the high-powered 40T pack Suspension: Latest generation Begode shock, with the rebound, inflation to 300PSI chamber pressure &amp;amp; 80mm of travel Loads of choice: motor"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode EX20S</td>
+            <td>3,600WH</td>
+            <td>100 miles</td>
+            <td>45 mph</td>
+            <td>3000W</td>
+            <td>103 lbs</td>
+            <td>265 LBS</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode EX30"
+            data-battery="3,600WH"
+            data-range="140 Miles"
+            data-speed="55+ MPH"
+            data-motor="4000W"
+            data-weight="101 LBS"
+            data-maxload="330 LBS."
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-ex30"
+            data-image="http://ewheels.com/cdn/shop/products/EX30-Oblique-Front-Right.jpg?v=1669861799&amp;width=2048"
+            data-desc="EX30s in Stock Battery: 3,600WH battery pack with Samsung 50E cells, Improved battery/BMS system with temperature sensors, battery pack redundancy, voltage alarms Motor: 4,000W high-torque motor, a no-load max rotational speed of 75.8MPH (not riding speed!) Controller: 36xMOSFETS (TO-263), 7 Capacitors Suspension: 4th"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode EX30</td>
+            <td>3,600WH</td>
+            <td>140 Miles</td>
+            <td>55+ MPH</td>
+            <td>4000W</td>
+            <td>101 LBS</td>
+            <td>330 LBS.</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode EX30 Electric Unicycle Sold Out Sale View"
+            data-battery="3600Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3600W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-ex30-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/ex30st_1200x1200.png?v=1708107425"
+            data-desc="Experience the Begode EX30 - the world&#x27;s most powerful Electric Unicycle! Boasting an unprecedented 134 volts &amp; refined suspension for a smooth ride."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode EX30 Electric Unicycle Sold Out Sale View</td>
+            <td>3600Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3600W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Extreme"
+            data-battery="2400WH"
+            data-range="70-90 MILES"
+            data-speed="~45MPH"
+            data-motor="3500W"
+            data-weight="86LB"
+            data-maxload="290LB"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-extreme"
+            data-image="http://ewheels.com/cdn/shop/files/begode-extreme-electric-unicycle-600x600.jpg?v=1717580050&amp;width=2048"
+            data-desc="Samsung 50S, 900lb spring, Knobby tire version in stock Discounted: from $3,199 to $2,499! Weight: 86lb Motor: 3,500W C40 High Torque Motor Top Speed: ~40-45 MPH No-load Speed: 68 MPH Suspension: 130mm 1300/900lb spring Suspension, with 60-80mm usuable travel Battery Pack: 134V 2,400Wh Samsung 50S high-power battery p"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Extreme</td>
+            <td>2400WH</td>
+            <td>70-90 MILES</td>
+            <td>~45MPH</td>
+            <td>3500W</td>
+            <td>86LB</td>
+            <td>290LB</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Extreme Ibex Electric Unicycle Regular price $2"
+            data-battery="2400Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="670W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-extreme-ibex-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/begodeextreme_1200x1200.png?v=1691526897"
+            data-desc="2025 Update: New DS200-5A Dual Adjustment Shock*, 50S Samsung High Current Cells. Introducing the DS200-5A shock, our latest upgrade featuring dual adjustment for rebound and compression. This represents a significant improvement over the previous DS spring shock, comparable to the Version 1 Extreme Air shock. The DS"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Extreme Ibex Electric Unicycle Regular price $2</td>
+            <td>2400Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>670W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Falcon 50S"
+            data-battery="900Wh"
+            data-range="35-40 MILES"
+            data-speed="~29 MPH"
+            data-motor="1500W"
+            data-weight="55lb"
+            data-maxload="290lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-falcon-900wh-battery-2800w-peak-power"
+            data-image="http://ewheels.com/cdn/shop/files/New-Falcon-1.jpg?v=1716558579&amp;width=2048"
+            data-desc="Both Knobby &amp;amp; Street Tire Falcons Back in Stock Bonus: 4-piece power pads included, as a more adjustable option compared to the stock pads Tires: choice of 15×3.5″ street or knobby tire Cruising Speed: ~29MPH max speed Battery Pack: 900Wh/100.8V battery using the Samsung 50S high-powered battery cells Control board"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Falcon 50S</td>
+            <td>900Wh</td>
+            <td>35-40 MILES</td>
+            <td>~29 MPH</td>
+            <td>1500W</td>
+            <td>55lb</td>
+            <td>290lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Future Electric Unicycle Regular price $799 View"
+            data-battery="375Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="800W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-future-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/Image_20241112101643_1200x1200.png?v=1736366788"
+            data-desc="The GotWay Begode Mten4 is the world&#x27;s smallest electric unicycle. The compact package is a ton of fun and very portable."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Future Electric Unicycle Regular price $799 View</td>
+            <td>375Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>800W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Hero"
+            data-battery="1,440WH"
+            data-range="70 Miles"
+            data-speed="40 Mph"
+            data-motor="2800W"
+            data-weight="80 lbs"
+            data-maxload="286 LBS"
+            data-battype="Samsung 40"
+            data-url="https://ewheels.com/products/begode-hero-1440wh-battery-2800w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/begode-hero-electric-unicycle-front.jpg?v=1718443840&amp;width=2048"
+            data-desc="In Stock! A Special Edition of the Begode Hero, with High-Powered LiTech Battery Packs Available in either High-Speed or High-Torque variants Improved Kenda 340A [for HS]/or Knobby 262 [for HT] tires preinstalled Fitted with the upgrade Begode adjustable shocks, with rebound support Rapid-charge capable, up to 12A"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Hero</td>
+            <td>1,440WH</td>
+            <td>70 Miles</td>
+            <td>40 Mph</td>
+            <td>2800W</td>
+            <td>80 lbs</td>
+            <td>286 LBS</td>
+            <td>Samsung 40</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Master Pro V3"
+            data-battery="4,800WH"
+            data-range="190 Miles"
+            data-speed="55 mph"
+            data-motor="5000W"
+            data-weight="115 lbs"
+            data-maxload="300 LBS"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-masterpro"
+            data-image="http://ewheels.com/cdn/shop/files/MasterPro-Front-Right-Oblique.jpg?v=1716799398&amp;width=2048"
+            data-desc="Both the Master Pro V2 &amp;amp; V3 in Stock Battery: Largest 4,800Wh battery pack with the Samsung 50E/GB cellsImproved battery/BMS system with temperature sensors. Motor: 5KW high-torque motor, the no-load max rotational speed of 93MPH (not riding speed!) Suspension: Suspension shock system, with the rebound providing up"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Master Pro V3</td>
+            <td>4,800WH</td>
+            <td>190 Miles</td>
+            <td>55 mph</td>
+            <td>5000W</td>
+            <td>115 lbs</td>
+            <td>300 LBS</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Master V2/3"
+            data-battery="1,920WH - 2,400WH"
+            data-range="90 miles"
+            data-speed="50 mph"
+            data-motor="3500W"
+            data-weight="90 lbs"
+            data-maxload="265 lbs"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-master"
+            data-image="http://ewheels.com/cdn/shop/products/BG-Master-BK-Right-Front-Top-Oblique-1_d90c8cf4-4a48-48e5-9be7-5278b6c1afd8.jpg?v=1674733503&amp;width=2048"
+            data-desc="In stock, the Master V4 has been discontinued/superseded by the Begode Blitz. Offered in two LiTech battery pack options, now with the metal battery boxes preinstalled:– High-range Samsung 50E cells, 10A output, 2,400Wh capacity– High-power Samsung 40T, 35A output, 1,920Wh capacity – &quot;V3 50E&quot; uses Begode&#x27;s BMS, and com"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Master V2/3</td>
+            <td>1,920WH - 2,400WH</td>
+            <td>90 miles</td>
+            <td>50 mph</td>
+            <td>3500W</td>
+            <td>90 lbs</td>
+            <td>265 lbs</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Master V4 Electric Unicycle 50s Sold Out Sale View"
+            data-battery="2400Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="2400W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-master-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/products/WechatIMG3309_1200x1200.jpg?v=1737418998"
+            data-desc="Experience power &amp; speed with the Begode Master Electric Unicycle from Alien Rides! Enjoy a smooth ride with refined suspension for the ultimate adventure."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Master V4 Electric Unicycle 50s Sold Out Sale View</td>
+            <td>2400Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>2400W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode MonsterPro Special Edition"
+            data-battery="2,880Wh"
+            data-range="100 MILES (CRUISING @ 25MPH)"
+            data-speed="50 MPH"
+            data-motor="3500W"
+            data-weight="88 LBS"
+            data-maxload="286 LBS"
+            data-battype="Molicel P42"
+            data-url="https://ewheels.com/products/begode-monster-pro-special-edition"
+            data-image="http://ewheels.com/cdn/shop/files/begode-monster-pro-special-edition-product-large.jpg?v=1716638822&amp;width=2048"
+            data-desc="In Stock, Ready to Ship Available in either a off-road/knobby, or street tire Begode Monster Pro Special Edition Motor: 3,500W Hollow bore motor, 65 mph no-load speed Top Speed: ~50 mph Battery Pack: Special Edition LiTech 100V high-power Molicel P42A battery cells Control board: Upgraded electronics/controller for hig"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode MonsterPro Special Edition</td>
+            <td>2,880Wh</td>
+            <td>100 MILES (CRUISING @ 25MPH)</td>
+            <td>50 MPH</td>
+            <td>3500W</td>
+            <td>88 LBS</td>
+            <td>286 LBS</td>
+            <td>Molicel P42</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Mten Mini Electric Unicycle Sold Out View"
+            data-battery="180Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="180W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-mten-mini-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/mtenmini_1200x1200.png?v=1709332696"
+            data-desc="The GotWay Begode Mten Mini is the world&#x27;s smallest electric unicycle. The compact package is a ton of fun and very portable."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Mten Mini Electric Unicycle Sold Out View</td>
+            <td>180Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>180W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Mten5 Electric Unicycle From $1"
+            data-battery="750Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="750W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-mten5-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/mmexport1719412526000_1200x1200.jpg?v=1736368230"
+            data-desc="The GotWay Begode Mten5 is the best compact electric unicycle . The compact package is a ton of fun and very portable."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Mten5 Electric Unicycle From $1</td>
+            <td>750Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>750W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode MTen5+ (Plus)"
+            data-battery="750Wh"
+            data-range="~25-30 Miles"
+            data-speed="~26 mph"
+            data-motor="1200W"
+            data-weight="41 lb"
+            data-maxload="265 lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-mten5-750wh-battery-1-200w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/MTen5_-Front-Oblique-Right.jpg?v=1723845439&amp;width=2048"
+            data-desc="In Stock NEW: all new MTen5+ is the zippiest/torquiest little Wheel made today. The MTen5+ has the upgraded 24-MOSFET controller, which runs up to 50% cooler, provides more power, and is more reliable. Also available as the MTen5 (non-plus), which uses the regular 6-MOSFET controller. Cruising Speed: with a top-end ma"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode MTen5+ (Plus)</td>
+            <td>750Wh</td>
+            <td>~25-30 Miles</td>
+            <td>~26 mph</td>
+            <td>1200W</td>
+            <td>41 lb</td>
+            <td>265 lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Nikola+ 1"
+            data-battery="1800Wh* *BG rating, 1728Wh true"
+            data-range="~70 Miles @20MPH under ideal conditions"
+            data-speed="~40 MPH*"
+            data-motor="2000W"
+            data-weight="59.5 lb"
+            data-maxload="300 lb"
+            data-battype="Molicel P42"
+            data-url="https://ewheels.com/products/new-gotway-nikola-1800wh-battery-2000w-motor-3-wide-tire"
+            data-image="http://ewheels.com/cdn/shop/products/Nikola-Oblique-Right.jpg?v=1614755235&amp;width=2048"
+            data-desc="– Back in stock– Now shipped with the upgraded Molicel P42a 2x 726Wh battery pack = 1,451Wh total with up to 4x more power than the standard Begode LG M50LT cells– Benefits of upgraded cells: massively increased power across all voltage ranges, improved hill-climbing, higher sustained max high-speed, larger safety marg"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Nikola+ 1</td>
+            <td>1800Wh* *BG rating, 1728Wh true</td>
+            <td>~70 Miles @20MPH under ideal conditions</td>
+            <td>~40 MPH*</td>
+            <td>2000W</td>
+            <td>59.5 lb</td>
+            <td>300 lb</td>
+            <td>Molicel P42</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Panther"
+            data-battery="4,400WH"
+            data-range="150 MILES"
+            data-speed="~60+ MPH"
+            data-motor="5000W"
+            data-weight="116lb"
+            data-maxload="300lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-panther-4-400wh-battery-5-000w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/Panther-1.jpg?v=1737491889&amp;width=2048"
+            data-desc="Availability: in Stock, ready to ship What&#x27;s New: 22&quot; Wheel that supersedes the Master Pro, with a similar overall build, higher top speed, and improved suspension. Suspension: all-new dual vertical shocks from Begode, similar style to Leaperkim wheels, with 80mm of travel and adjustable compression/rebound. Motor: 5"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Panther</td>
+            <td>4,400WH</td>
+            <td>150 MILES</td>
+            <td>~60+ MPH</td>
+            <td>5000W</td>
+            <td>116lb</td>
+            <td>300lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Panther Electric Unicycle Deposit Regular price $4"
+            data-battery="4400Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="25W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-panther-electric-unicycle-pre-order-deposit"
+            data-image="http://alienrides.com/cdn/shop/files/Photoroom-20250113-090349_3_1200x1200.png?v=1736787890"
+            data-desc="The Ultimate High-Performance EUC The Begode Panther 168V 22&quot; is built for speed, agility, and endurance. Whether you’re carving city streets or hitting the open highway, this EUC delivers an unparalleled ride experience with next-level power and stability. ⚡ Key Features: ✅ Unmatched Power &amp;amp; Speed: 168V battery |"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Panther Electric Unicycle Deposit Regular price $4</td>
+            <td>4400Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>25W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode T4 Max"
+            data-battery="1,800WH"
+            data-range="60 MILES"
+            data-speed="35+ MPH"
+            data-motor="3000W"
+            data-weight="79 lbs"
+            data-maxload="300 lbs"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-t4-max-1-800wh-battery-3000w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/T4-Max_-Oblique-Front-Right.jpg?v=1729791434&amp;width=2048"
+            data-desc="In Stock T4 Max Upgrades: newer upgraded controller for cooler operation, higher current limit, and field weakening, more powerful 3000W tile motor for a smoother ride feel Battery: 1,800Wh 50S cells, allowing for high-performance riding without compromising on range Tire: Shipping with the knobby J802 tire, with an of"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode T4 Max</td>
+            <td>1,800WH</td>
+            <td>60 MILES</td>
+            <td>35+ MPH</td>
+            <td>3000W</td>
+            <td>79 lbs</td>
+            <td>300 lbs</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode T4 Max Electric Unicycle Sold Out View"
+            data-battery="1800Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="1800W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-t4-max-pre-order"
+            data-image="http://alienrides.com/cdn/shop/files/Photoroom-20240702-095634_3_1200x1200.png?v=1736367452"
+            data-desc="Experience the Begode T4 Max, a mid-size electric unicycle offering high speed &amp; long range. Ideal for both beginners and experienced riders. Order now!"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode T4 Max Electric Unicycle Sold Out View</td>
+            <td>1800Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>1800W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode T4 Pro Electric Unicycle Regular price $1"
+            data-battery="1800Wh"
+            data-range="N/A"
+            data-speed="43 mph"
+            data-motor="1800W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-t4-pro-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/t4pro_1200x1200.png?v=1702324891"
+            data-desc="Experience the Begode T4, a mid-size electric unicycle offering high speed &amp; long range. Ideal for both beginners and experienced riders. Order now!"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode T4 Pro Electric Unicycle Regular price $1</td>
+            <td>1800Wh</td>
+            <td>N/A</td>
+            <td>43 mph</td>
+            <td>1800W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode T4/T4 PRO"
+            data-battery="1,440WH"
+            data-range="60 MILES"
+            data-speed="35 MPH"
+            data-motor="2500W"
+            data-weight="70.6 lbs"
+            data-maxload="300 lbs"
+            data-battype="Samsung 40"
+            data-url="https://ewheels.com/products/begode-t4-t4-pro-1440-1800wh-battery-2500w-motor"
+            data-image="http://ewheels.com/cdn/shop/products/BG-T4--Right-Oblique.jpg?v=1673007947&amp;width=2048"
+            data-desc="Availability: V3 &amp;amp; T4 PRO in Stock Variants: available in several different combinations:1) V3: Samsung 40T high-power 1,440Wh, air shock, J802 knobby tire2) V3: Samsung 40T high-power 1,440Wh, air shock, CST-1773 hybrid tire3) T4 PRO: Samsung 50E high-capacity 1,800Wh, air shock, CST-CM518 street tire T4 PRO Upgra"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode T4/T4 PRO</td>
+            <td>1,440WH</td>
+            <td>60 MILES</td>
+            <td>35 MPH</td>
+            <td>2500W</td>
+            <td>70.6 lbs</td>
+            <td>300 lbs</td>
+            <td>Samsung 40</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode Tesla V3 1"
+            data-battery="1,500Wh"
+            data-range="60 miles (@20mph)"
+            data-speed="~31 MPH"
+            data-motor="2000W"
+            data-weight="48.5 lb"
+            data-maxload="~300 lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-tesla-v3-1500wh-battery-2000w-motor-deposit"
+            data-image="http://ewheels.com/cdn/shop/products/T3-Front-Oblique-Right.jpg?v=1669861953&amp;width=2048"
+            data-desc="In Stock, Shipping Now New: Integrated dash display, bluetooth Stereo speaker box, improved rear tail-light 50% more battery capacity from V2, 1,020Wh to 1,500Wh upgrade Shipped with our exclusive LiTech battery packs with Korean imported Samsung 50E cells"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode Tesla V3 1</td>
+            <td>1,500Wh</td>
+            <td>60 miles (@20mph)</td>
+            <td>~31 MPH</td>
+            <td>2000W</td>
+            <td>48.5 lb</td>
+            <td>~300 lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode X-Way"
+            data-battery="2,400Wh / 3,000Wh"
+            data-range="50 MILES"
+            data-speed="~40+MPH / ~50+MPH"
+            data-motor="4500W"
+            data-weight="87lb / 98lb"
+            data-maxload="300lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-x-way-3-000wh-battery-4-500w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/XWay_-Front-Oblique-Right.jpg?v=1728670704&amp;width=2048"
+            data-desc="Both variants in stock! What&#x27;s New: similar to the Blitz, the X-Way is Begode&#x27;s latest off-road/trail Wheel that also uses extensive magnesium within the motor, frame &amp;amp; battery boxes to shed some of the weight of previous models. By way of comparison, despite having 600Wh more capacity than the Master V4 &amp;amp; a mu"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode X-Way</td>
+            <td>2,400Wh / 3,000Wh</td>
+            <td>50 MILES</td>
+            <td>~40+MPH / ~50+MPH</td>
+            <td>4500W</td>
+            <td>87lb / 98lb</td>
+            <td>300lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Begode X-Way Electric Unicycle From $2"
+            data-battery="3000Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="4500W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/begode-x-way-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/mmexport1727963055797_1200x1200.jpg?v=1727963074"
+            data-desc="Begode X-Way / Xway EXWAY - High-Performance Off-Road Electric Unicycle Product Information:Expected to arrive in early February/March 2025, the Begode X-Way (also referred to as the Xway &amp;amp; EXWAY) is a next-generation electric unicycle designed for off-road enthusiasts and high-performance riders. Featuring cutting"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Begode X-Way Electric Unicycle From $2</td>
+            <td>3000Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>4500W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Commander GT Electric Unicycle Sold Out Sale View"
+            data-battery="2400Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="2400W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/commander-gt-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/Photoroom-20241107-173955_8_1200x1200.png?v=1731032636"
+            data-desc="The Extreme Bull Commander GT combines high torque with compact form, providing intense power in a versatile design. With a striking 20&quot; wheel, a top speed of 50mph , and ultra-bright blue and red RGB LED lights, this model is designed for riders seeking both performance and style. Built from the frame of the Commander"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Commander GT Electric Unicycle Sold Out Sale View</td>
+            <td>2400Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>2400W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Commander GT Pro Electric Unicycle Sold Out Sale View"
+            data-battery="4400Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3000W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/commander-gt-pro-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/GTPro-1_1200x1200.png?v=1707524528"
+            data-desc="Introducing the Commander GT Pro, the fastest electric unicycle ever. This EUC has an unprecedented 40 series 168-volt battery, offering unparalleled power and speed in your daily commutes or adventurous rides. Experience the thrill of the fastest electric unicycle on the market with a breathtaking no-load speed of 200"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Commander GT Pro Electric Unicycle Sold Out Sale View</td>
+            <td>4400Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3000W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Commander Max Electric Unicycle Deposit Regular price $4"
+            data-battery="4400Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="N/A"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/commander-l-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/151-Photoroom_1200x1200.jpg?v=1736367227"
+            data-desc="Full price yet to be announced :) Introducing the Commander L. This is an upgrade of the Commander Pro. One of the fastest electric unicycles ever. This EUC has an unprecedented 168-volt 4400wh battery, offering unparalleled power and speed in your daily commutes or adventurous rides. More Specs incoming"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Commander Max Electric Unicycle Deposit Regular price $4</td>
+            <td>4400Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Commander Mini Electric Unicycle 50s Regular price $2"
+            data-battery="2400Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="2400W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/commander-mini-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/IMG-8558_1200x1200.png?v=1694635776"
+            data-desc="The Extreme Bull Commander Mini is designed for riders seeking power and versatility. It features a 3,200W high-torque motor, capable of a cruising speed of over 38 MPH, and an upgraded 2,400Wh Samsung 50S battery pack, providing a range of up to 80 miles under ideal conditions. The unicycle includes an adjustable susp"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Commander Mini Electric Unicycle 50s Regular price $2</td>
+            <td>2400Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>2400W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Commander Pro Electric Unicycle Sold Out Sale View"
+            data-battery="3600Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3600W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/commander-pro-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/S9fc9f099834d4a3eaa11518793ccee40X_jpg_640x640Q90_jpg_1200x1200.webp?v=1736370141"
+            data-desc="Extreme Bull Commander Pro Electric Unicycle The Ultimate High-Performance EUC for Adventure Enthusiasts Take your riding experience to the next level with the Extreme Bull Commander Pro, a powerful electric unicycle designed for speed, endurance, and versatility. Engineered for high-performance riders, this machine is"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Commander Pro Electric Unicycle Sold Out Sale View</td>
+            <td>3600Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3600W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="E-TWOW GT SPORT"
+            data-battery="504WH"
+            data-range="30 MILES *AT REASONABLE SPEEDS UNDER IDEAL CONDITIONS"
+            data-speed="25 MPH"
+            data-motor="700W"
+            data-weight="29 LBS"
+            data-maxload="220 LBS"
+            data-battype="Samsung 504"
+            data-url="https://ewheels.com/products/new-e-twow-gt-700w-504wh-25mph"
+            data-image="http://ewheels.com/cdn/shop/products/GT-GY-Front-Oblique-Left_376ef8ac-0303-433e-9a71-5f00d37aaa1d.jpg?v=1669861767&amp;width=2048"
+            data-desc="Latest Batch: Special Edition and Sport Models High-performance: ~25 MPH scooter (for Sport) The GT Sport is the most potent E-Twow eScooter, weighs about 30 lbs The Samsung 504Wh battery pack provides up to 30 miles of range &amp;amp; enhanced reliability. Unique in its class, no other eScooter provides the same power, ra"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>E-TWOW GT SPORT</td>
+            <td>504WH</td>
+            <td>30 MILES *AT REASONABLE SPEEDS UNDER IDEAL CONDITIONS</td>
+            <td>25 MPH</td>
+            <td>700W</td>
+            <td>29 LBS</td>
+            <td>220 LBS</td>
+            <td>Samsung 504</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="EB Commander Mini"
+            data-battery="2400Wh"
+            data-range="80 mi (@20mph in Ideal Conditions)"
+            data-speed="+38MPH"
+            data-motor="3200W"
+            data-weight="88.18 lbs"
+            data-maxload="285 lbs"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/eb-commander-mini-2400wh-battery-3200w-motor-suspension"
+            data-image="http://ewheels.com/cdn/shop/files/Mini-RD-Front-Oblique-Right.jpg?v=1716818790&amp;width=2048"
+            data-desc="In Stock NEW: Upgraded Samsung 50S battery packs, in the gold or red CNC trim parts &amp;amp; choice of the street/knobby tire Motor: 3,200W high-torque motor C38, a no-load max rotational speed of 60MPH (not riding speed!) Battery Pack: Samsung 50S high-power 2,400Wh/134V battery pack Control board: All new electronics/co"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>EB Commander Mini</td>
+            <td>2400Wh</td>
+            <td>80 mi (@20mph in Ideal Conditions)</td>
+            <td>+38MPH</td>
+            <td>3200W</td>
+            <td>88.18 lbs</td>
+            <td>285 lbs</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Extreme Bull Commander"
+            data-battery="3,600WH"
+            data-range="100 MILES"
+            data-speed="37 / 47 MPH"
+            data-motor="3000W"
+            data-weight="88 LBS"
+            data-maxload="330 LBS"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/begode-commander-3600wh-3000w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/BG-Commander-Front-Oblique-Right.jpg?v=1763068390&amp;width=2048"
+            data-desc="Extreme Bull Commander, offered at a 50% discount from regular price Equipped with upgraded LiTech Samsung 50E 3,600Wh battery packs Key features/specifications: 20″ knobby CST-186 tire 3,600Wh Samsung 21700 50E cells (our improved battery packs) 2,800W motor, &amp;gt;50MPH max speed, available in either HS/HT motor types"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Extreme Bull Commander</td>
+            <td>3,600WH</td>
+            <td>100 MILES</td>
+            <td>37 / 47 MPH</td>
+            <td>3000W</td>
+            <td>88 LBS</td>
+            <td>330 LBS</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Extreme Bull Commander Max"
+            data-battery="4400Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="4500W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://nextgenmobility.org/products/commander-max"
+            data-image="http://nextgenmobility.org/cdn/shop/files/gyroroue-extreme-bull-commander-max.jpg?v=1763489194"
+            data-desc="The Commander Max an incredibly powerful long range EUC with outstanding range and power combined in a package thats sure to thrill!"
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Extreme Bull Commander Max</td>
+            <td>4400Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>4500W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Extreme Bull Commander Pro"
+            data-battery="3,600WH"
+            data-range="100 MILES"
+            data-speed="55 MPH"
+            data-motor="3500W"
+            data-weight="94.8 LBS"
+            data-maxload="320 LBS"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/eb-commander-pro"
+            data-image="http://ewheels.com/cdn/shop/files/CommanderPro-Oblique-Right.jpg?v=1716813013&amp;width=2048"
+            data-desc="Stock: batch 4 with Street tire in stock, with bonus red CNC 3pc handle set installed Battery Pack: 3,600WH/134V battery pack with the Samsung 50E battery cells Motor: 3,500W high-torque motor [7KW peak], the no-load max rotational speed of 70MPH (not riding speed!) Controller: All new electronics/controller, 24x MOSFE"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Extreme Bull Commander Pro</td>
+            <td>3,600WH</td>
+            <td>100 MILES</td>
+            <td>55 MPH</td>
+            <td>3500W</td>
+            <td>94.8 LBS</td>
+            <td>320 LBS</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Extreme Bull Griffin"
+            data-battery="2700Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="4000W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://nextgenmobility.org/products/griffin"
+            data-image="http://nextgenmobility.org/cdn/shop/files/448646464_1886160205219435_2248567227900378975_n.jpg?v=1730448496"
+            data-desc="Light and Powerful, this is the newest racing machine from Extreme Bull!"
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Extreme Bull Griffin</td>
+            <td>2700Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>4000W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Extreme Bull Grıffın Electric Unicycle Regular price $2"
+            data-battery="2700Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="2700W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/extreme-bull-griffin-pre-order"
+            data-image="http://alienrides.com/cdn/shop/files/mmexport1719839955468_1200x1200.jpg?v=1719867382"
+            data-desc="Extreme Bull Griffin - The Ultimate Middle-Class Race Wheel The Extreme Bull Griffin sets a new standard in mid-sized electric unicycles, combining high-performance features with superior design. Equipped with the same powerful Tile Motor found in the ET Max, it surpasses the C38 motor version in speed, power, and effi"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Extreme Bull Grıffın Electric Unicycle Regular price $2</td>
+            <td>2700Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>2700W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Extreme Bull Rocket"
+            data-battery="1,500Wh"
+            data-range="40-45 MILES"
+            data-speed="43+ MPH"
+            data-motor="2000W"
+            data-weight="70lb"
+            data-maxload="300lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/extreme-bull-rocket-1-500wh-battery-2-000w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/Rocket_-Oblique-Front-Right_-New.jpg?v=1738264481&amp;width=2048"
+            data-desc="In Stock What&#x27;s New: 15&quot; Wheel, weighing ~70lb, with the highest top speed and largest battery in its size class! Suspension: similar cylindrical shocks to the Commander Pro, with 100mm of travel, &amp;amp; customizable preload and damping. Motor: 2,000W C40 motor, capable of excellent torque as well as impressively high"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Extreme Bull Rocket</td>
+            <td>1,500Wh</td>
+            <td>40-45 MILES</td>
+            <td>43+ MPH</td>
+            <td>2000W</td>
+            <td>70lb</td>
+            <td>300lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Extreme Bull Rocket - Electric Unicycle"
+            data-battery="1500Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="2500W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://nextgenmobility.org/products/extreme-bull-rocket-electric-unicycle"
+            data-image="http://nextgenmobility.org/cdn/shop/files/rn-image_picker_lib_temp_83abefb4-542e-4f76-bead-3880f7592bf9.jpg?v=1744906637"
+            data-desc="The Extreme Bull Rocket is the most powerful small EUC ever made! Made for incredible torque, a plush ride, suitable for beginners and advanced riders alike."
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Extreme Bull Rocket - Electric Unicycle</td>
+            <td>1500Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>2500W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Extreme Bull Rocket 168v Mini Electric Unicycle Regular price $2"
+            data-battery="1500Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="1500W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/extremebull-rocket-168v-mini-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/cbe47bef62b41eb15ad417a36324c050_1200x1200.jpg?v=1746033480"
+            data-desc="Extreme Bull Rocket – High-Voltage Compact EUC Will Sell for $2299 * Or cheaper. We Price Match. Experience the ultimate in compact, high-performance electric unicycles with the Extreme Bull Rocket. This 15-inch EUC features a powerful 168V system in a lightweight, ultra-portable design, perfect for urban commuters a"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Extreme Bull Rocket 168v Mini Electric Unicycle Regular price $2</td>
+            <td>1500Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>1500W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion Adventure/V14 50S"
+            data-battery="2,400WH"
+            data-range="70 MILES"
+            data-speed="~49-50MPH"
+            data-motor="4000W"
+            data-weight="86LB"
+            data-maxload="308LB"
+            data-battype="N/A"
+            data-url="https://ewheels.com/products/inmotion-adventure-v14-2400wh-battery-4000w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/V14-50S-Oblique-Right-500x500.jpg?v=1717750364&amp;width=2048"
+            data-desc="Back in Stock, V14 50S, with Black Panels, Ready to ship! V14 &quot;Pro&quot; spec available by simply installing the latest firmware update upon receipt. Hardware between the V14 Pro and V14 50S is identical. Bonus: bonus Powerpads &amp;amp; seat kit Motor: 4,000W high-torque motor C40, a no-load max rotational speed of 68MPH (n"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion Adventure/V14 50S</td>
+            <td>2,400WH</td>
+            <td>70 MILES</td>
+            <td>~49-50MPH</td>
+            <td>4000W</td>
+            <td>86LB</td>
+            <td>308LB</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion E20 Dual Wheel Beginner EUC Regular price $399 View"
+            data-battery="N/A"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="240W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/inmotion-e20-dual-wheel-beginner-euc"
+            data-image="http://alienrides.com/cdn/shop/files/circular-image_1200x1200.png?v=1737070154"
+            data-desc="Discover the classic Inmotion V8F: lightweight, agile, and perfect for beginners. Now with a bigger battery, 21.8 mph speed, and a slim frame. Order today."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion E20 Dual Wheel Beginner EUC Regular price $399 View</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>240W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion P6 Electric Unicycle Preorder Regular price $4"
+            data-battery="4200Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="4200W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/inmotion-p6-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/P6_7_1200x1200.png?v=1760208503"
+            data-desc="Ultimate Performance Electric Unicycle Meet the Inmotion P6, the world’s most powerful electric unicycle. Designed for riders who crave speed, control, and range, the P6 redefines what’s possible on one wheel. Performance That Breaks Limits 235V High-Voltage System – Delivers a blistering 20,000W peak output and top sp"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion P6 Electric Unicycle Preorder Regular price $4</td>
+            <td>4200Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>4200W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion V11Y"
+            data-battery="1,500WH"
+            data-range="50 MILES"
+            data-speed="37.3MPH"
+            data-motor="2500W"
+            data-weight="65.5LB"
+            data-maxload="290LB"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/inmotion-v11y-1500wh-battery-2500w-motor-7kw-peak"
+            data-image="http://ewheels.com/cdn/shop/files/V11Y-Oblique-Front-Right.jpg?v=1717750068&amp;width=2048"
+            data-desc="In-Stock! Price: $1,899 Motor: 2,500W (7KW peak) high-torque motor, nearly double the torque! With a maximum ride speed increased to 37.3MPH Battery Pack: 1,500Wh/84V battery pack, with Smart BMS, capable of rapid-charging to 10A/840W Control board: Employing the Raptor 42x MOSFETs/18x large capacitor sealed controller"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion V11Y</td>
+            <td>1,500WH</td>
+            <td>50 MILES</td>
+            <td>37.3MPH</td>
+            <td>2500W</td>
+            <td>65.5LB</td>
+            <td>290LB</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion V12S Electric Unicycle Regular price $2"
+            data-battery="1440Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="2500W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/inmotion-v12s-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/V12_-__01_1200x1200.png?v=1750632385"
+            data-desc="Ride Smarter. Ride Stronger. Meet the New Inmotion V12S. The Inmotion V12S is not just a refresh—it’s a redefinition of urban mobility. Designed for power, comfort, and connected experiences, this next-gen electric unicycle raises the bar in every way. With cutting-edge upgrades like hydraulic suspension, advanced secu"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion V12S Electric Unicycle Regular price $2</td>
+            <td>1440Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>2500W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion V13 Pro Electric Unicycle Sold Out Sale View"
+            data-battery="3024Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3024W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/inmotion-v13-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/V13Pro-4_1200x1200.png?v=1736468649"
+            data-desc="The V13 is Inmotion&#x27;s answer to performance. With the highest freespin speed in the industry, the Inmotion V13 will be a force to be reckoned with."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion V13 Pro Electric Unicycle Sold Out Sale View</td>
+            <td>3024Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3024W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion V13/V13 PRO"
+            data-battery="3,024WH"
+            data-range="80 miles"
+            data-speed="55 MPH"
+            data-motor="4500W"
+            data-weight="117 LBS"
+            data-maxload="287 LBS"
+            data-battype="Samsung 35"
+            data-url="https://ewheels.com/products/inmotion-v13"
+            data-image="http://ewheels.com/cdn/shop/files/V13PRO-Front-Oblique-Right-500x500_02e1c16e-de0f-4e1b-beb4-7815926f49c6.jpg?v=1717750485&amp;width=2048"
+            data-desc="V13 in stock ‘PRO’ version of the V13 has black roll-bars &amp;amp; a hybrid tire, all other hardware/firmware are the same Bonus: seat kit &amp;amp; kickstand included, a $230 value Motor: 4,500W (10,000W peak), 300 Nm of torque Controller: All new generation controller with 42 MOSFETs, continuous power output rating of 1,0"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion V13/V13 PRO</td>
+            <td>3,024WH</td>
+            <td>80 miles</td>
+            <td>55 MPH</td>
+            <td>4500W</td>
+            <td>117 LBS</td>
+            <td>287 LBS</td>
+            <td>Samsung 35</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion V14 Adventure Electric Unicycle 50S Sold Out Sale View"
+            data-battery="2400Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="2400W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/inmotion-adventure-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/PhotoRoom-20230901-093251_1_1200x1200.png?v=1736367167"
+            data-desc="Inmotion V14 Adventure Electric Unicycle Latest Updates The newest batch features updated suspension components for improved performance and durability. Free Velcro pad plates and Power Pads are included, adding a $130 value to your purchase. Enhanced Battery Performance The V14 Adventure now comes standard with Samsun"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion V14 Adventure Electric Unicycle 50S Sold Out Sale View</td>
+            <td>2400Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>2400W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion V8F"
+            data-battery="518WH"
+            data-range="22 MILES"
+            data-speed="21.7 MPH"
+            data-motor="1000W"
+            data-weight="35 LBS"
+            data-maxload="260 LBS"
+            data-battype="N/A"
+            data-url="https://ewheels.com/products/new-inmotion-v8f-518wh-battery-1000w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/V8S-Oblique-Right-500x500.jpg?v=1717750546&amp;width=2048"
+            data-desc="Sale: discounted from $1,199 to $999 Features: upgraded 21.7MPH max speed, more powerful motor, higher safety margin with new controller design, upgraded pedals, better pads, slightly more range BONUS: free wrist-guards &amp;amp; protective cover"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion V8F</td>
+            <td>518WH</td>
+            <td>22 MILES</td>
+            <td>21.7 MPH</td>
+            <td>1000W</td>
+            <td>35 LBS</td>
+            <td>260 LBS</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion V8S Electric Unicycle Sold Out Sale View"
+            data-battery="N/A"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="728W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/inmotion-v8f-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/matt_1200x1200.webp?v=1722461872"
+            data-desc="Discover the classic Inmotion V8F: lightweight, agile, and perfect for beginners. Now with a bigger battery, 21.8 mph speed, and a slim frame. Order today."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion V8S Electric Unicycle Sold Out Sale View</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>728W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion V9"
+            data-battery="750 Wh"
+            data-range="37 MILES"
+            data-speed="28 MPH"
+            data-motor="1000W"
+            data-weight="51lb"
+            data-maxload="265lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/inmotion-v9-750wh-battery-1-000w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/V9_-Front-Oblique-Right.jpg?v=1741375878&amp;width=2048"
+            data-desc="In Stock, ready to ship! Bonus power pads and seat kit included with every V9, a $165 value What&#x27;s New: Inmotion&#x27;s latest beginner and commuter-friendly wheel, sporting a low weight of 51lbs (the lowest of any suspension wheel!) and a full suite of convenience features Suspension: Two vertical air shocks similar to th"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion V9</td>
+            <td>750 Wh</td>
+            <td>37 MILES</td>
+            <td>28 MPH</td>
+            <td>1000W</td>
+            <td>51lb</td>
+            <td>265lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Inmotion V9 Suspension Electric Unicycle Regular price $1"
+            data-battery="750Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="N/A"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/inmotion-e25-suspension-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/e25_1200x1200.jpg?v=1740236073"
+            data-desc="Discover the classic Inmotion E20: lightweight, agile, suspension, GPS Tracking and perfect for beginners. Order today."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Inmotion V9 Suspension Electric Unicycle Regular price $1</td>
+            <td>750Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song 16X"
+            data-battery="1554Wh"
+            data-range="~65 miles"
+            data-speed="31 MPH"
+            data-motor="2200W"
+            data-weight="51.8 lbs"
+            data-maxload="300 lbs"
+            data-battype="N/A"
+            data-url="https://ewheels.com/products/new-king-song-16x-1554wh-battery-2000w-motor-3-wide-tire"
+            data-image="http://ewheels.com/cdn/shop/products/16X-Oblique.jpg?v=1719250869&amp;width=2048"
+            data-desc="16X in stock Discount: for a limited time, the 16X ‘Classic’ has been discounted by $550, from $2,099 Bonus: free wrist-guards 16×3″ Tire, 2200W Motor, Max speed of ~31MPH, 1554Wh battery Range of up 65 miles per charge All new design with 4.1 speaker system, retractable trolley, with high ground clearance"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song 16X</td>
+            <td>1554Wh</td>
+            <td>~65 miles</td>
+            <td>31 MPH</td>
+            <td>2200W</td>
+            <td>51.8 lbs</td>
+            <td>300 lbs</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song 18XL"
+            data-battery="1554Wh"
+            data-range="~70 miles"
+            data-speed="31 MPH"
+            data-motor="2200W"
+            data-weight="53 lbs"
+            data-maxload="300 lbs"
+            data-battype="Samsung 35"
+            data-url="https://ewheels.com/products/new-king-song-18xl-1554wh-battery-2000w-motor"
+            data-image="http://ewheels.com/cdn/shop/products/KS18XL-PED-Olbique-Right-1.jpg?v=1614771492&amp;width=2048"
+            data-desc="In Stock New Motor: equipped with the latest ZX 2200W motor providing more torque &amp;amp; quieter operation Bonus: free set of wrist-guards Fitted with the improved 10″/25cm length pedals"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song 18XL</td>
+            <td>1554Wh</td>
+            <td>~70 miles</td>
+            <td>31 MPH</td>
+            <td>2200W</td>
+            <td>53 lbs</td>
+            <td>300 lbs</td>
+            <td>Samsung 35</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song F18"
+            data-battery="2,700Wh"
+            data-range="70 MILES"
+            data-speed="~50+ MPH"
+            data-motor="5000W"
+            data-weight="88lb"
+            data-maxload="308lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/king-song-f18-2-700wh-battery-5-000w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/KS-F18_-Front-Oblique-Right.jpg?v=1764175058&amp;width=2048"
+            data-desc="ETA 3rd week of December What&#x27;s New: a worthy competitor to the bestselling Lynx, the F18 incorporates a number of new innovations into the model Latest Updates: firmware tuned with more power output, settings tone adjustment, low-temperature operation optimization, improved ergonomics with pads, better water resistanc"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song F18</td>
+            <td>2,700Wh</td>
+            <td>70 MILES</td>
+            <td>~50+ MPH</td>
+            <td>5000W</td>
+            <td>88lb</td>
+            <td>308lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song F22 PRO"
+            data-battery="3,108 WH"
+            data-range="100 MILES"
+            data-speed="~55+ MPH"
+            data-motor="5500W"
+            data-weight="105.8lb"
+            data-maxload="300lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/king-song-f22-pro-3-108wh-battery-5-500w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/F22_-Front-Oblique-Right.jpg?v=1739992666&amp;width=2048"
+            data-desc="In Stock and shipping now! What&#x27;s New: King Song&#x27;s most performant wheel to date, with power, top speed, and range rivaling Begode&#x27;s latest offerings! Suspension: Unique DNM quad-piston setup with 100mm of travel for excellent frame rigidity, with two inflatable air pistons that use progressive internal springs, adjust"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song F22 PRO</td>
+            <td>3,108 WH</td>
+            <td>100 MILES</td>
+            <td>~55+ MPH</td>
+            <td>5500W</td>
+            <td>105.8lb</td>
+            <td>300lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song F22 Pro Electric Unicycle Regular price $3"
+            data-battery="3108Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3108W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/king-song-f22-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/Photoroom-20250108-120734_1200x1200.png?v=1736366979"
+            data-desc="Order the King Song F22 Pro Electric Unicycle from Alien Rides! Experience top speeds, advanced suspension, and innovative features for a thrilling ride."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song F22 Pro Electric Unicycle Regular price $3</td>
+            <td>3108Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3108W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song S16 PRO"
+            data-battery="1,480WH"
+            data-range="50 Miles"
+            data-speed="37.3MPH"
+            data-motor="3000W"
+            data-weight="68.3LB"
+            data-maxload="290LB"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/king-song-s16-pro-1480wh-battery-3000w-motor-6kw-peak"
+            data-image="http://ewheels.com/cdn/shop/files/S16-PRO-Oblique-Bottom-Right.jpg?v=1716806349&amp;width=2048"
+            data-desc="In Stock S16 PRO Update: upgraded motor 3KW motor (from 2,800W) &amp;amp; high-power Samsung 50S battery cells to achieve a +6 MPH boost, from 31 to 37.3 MPH Motor: 3,000W (6KW peak) C33 high-torque motor Battery Pack: 1,480Wh/84V Samsung high-power 50S battery pack, with SmartBMS Suspension: 750lb shock, with 85mm of trav"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song S16 PRO</td>
+            <td>1,480WH</td>
+            <td>50 Miles</td>
+            <td>37.3MPH</td>
+            <td>3000W</td>
+            <td>68.3LB</td>
+            <td>290LB</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song S18"
+            data-battery="903WH"
+            data-range="40 MILES"
+            data-speed="31 MPH"
+            data-motor="2200W"
+            data-weight="55 lbs"
+            data-maxload="&lt;200lbs"
+            data-battype="Molicel P42"
+            data-url="https://ewheels.com/products/new-king-song-s18-1110wh-battery-2200w-motor-full-body-suspension"
+            data-image="http://ewheels.com/cdn/shop/products/S18-BK-Front-Oblique-Right.jpg?v=1614755197&amp;width=2048"
+            data-desc="In Stock! Battery: Now equipped with the Molicel P42a battery pack, with up to &amp;gt;4x more battery power over the standard LG M50LT cells. Design: King Song’s bold exoskeleton-styled Electric Unicycle, with full-body suspension Features: full-body suspension, 903WH battery pack, 2,200W motor, 31 MPH max speed, 18×3″ t"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song S18</td>
+            <td>903WH</td>
+            <td>40 MILES</td>
+            <td>31 MPH</td>
+            <td>2200W</td>
+            <td>55 lbs</td>
+            <td>&lt;200lbs</td>
+            <td>Molicel P42</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song S19 Pro Electric Unicycle Sold Out View"
+            data-battery="1800Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="1800W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/king-song-s19-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/Kingsongs19kingkong_1200x1200.png?v=1690574066"
+            data-desc="Sign up for the King Song S19 Electric Unicycle now! Experience power, speed, and smooth suspension for your ride. Don&#x27;t miss out on our next shipment!"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song S19 Pro Electric Unicycle Sold Out View</td>
+            <td>1800Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>1800W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song S22 Pro Electric Unicycle Sold Out Sale View"
+            data-battery="N/A"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="2220W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/king-song-s22-pro-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/products/s22main_1200x1200.png?v=1664483242"
+            data-desc="Pre-order the King Song S22 Pro Electric Unicycle from Alien Rides! Experience top speeds, advanced suspension, and innovative features for a thrilling ride."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song S22 Pro Electric Unicycle Sold Out Sale View</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>2220W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="King Song S22/Pro"
+            data-battery="1,776WH"
+            data-range="50-70 MILES"
+            data-speed="43.5MPH"
+            data-motor="22W"
+            data-weight="77 lbs"
+            data-maxload="265 LBS"
+            data-battype="Samsung 40"
+            data-url="https://ewheels.com/products/king-song-s20-eagle"
+            data-image="http://ewheels.com/cdn/shop/products/S20-Right-Oblique.jpg?v=1669861844&amp;width=2048"
+            data-desc="S22, PRO Available in either the ‘Classic’ Red &amp;amp; Black, or Anniversary Gold Scheme New Upgrades: New updates include the Gen 4 4KW PRO motors, premium Hou Ningning Slider Kits, &amp;amp; upgraded suspension linkages &amp;amp; motor bolts. Custom Options: Due to the nature of the custom work performed, there may be up to a"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>King Song S22/Pro</td>
+            <td>1,776WH</td>
+            <td>50-70 MILES</td>
+            <td>43.5MPH</td>
+            <td>22W</td>
+            <td>77 lbs</td>
+            <td>265 LBS</td>
+            <td>Samsung 40</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Kingsong F18 Electric Unicycle"
+            data-battery="2700Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="5000W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://nextgenmobility.org/products/kingsong-f18-electric-unicycle"
+            data-image="http://nextgenmobility.org/cdn/shop/files/KS-F18-_.5.webp?v=1756057218"
+            data-desc="Preorder Kingsong F18 electric unicycle! Powerful 5000W motor, 2700Wh battery, 100mm suspension. Easy maintenance and tubeless tire. Arrives June/July 2025!"
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Kingsong F18 Electric Unicycle</td>
+            <td>2700Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>5000W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Kingsong F22 Pro"
+            data-battery="3108Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="6W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://nextgenmobility.org/products/f22-pro"
+            data-image="http://nextgenmobility.org/cdn/shop/files/f22whitebg1.jpg?v=1733434166"
+            data-desc="Kingsong&#x27;s Flagship EUC. Designed to be incredibly powerful and comfortable to ride, with 4 suspenion stanchions to deliver unparalleled comfort."
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Kingsong F22 Pro</td>
+            <td>3108Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>6W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Leaperkim Lynx Electric Unicycle"
+            data-battery="2700Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3200W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://nextgenmobility.org/products/lynx"
+            data-image="http://nextgenmobility.org/cdn/shop/files/396728731_643533681195815_260884417895716299_n.jpg?v=1730448699"
+            data-desc="The Lynx is Leaperkim&#x27;s flagship EUC. This machine does not disappoint with its smooth suspension, power, top speed, build quality and reliability."
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Leaperkim Lynx Electric Unicycle</td>
+            <td>2700Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3200W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Leaperkim Oryx Electric Unicycle"
+            data-battery="4700Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="4200W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://nextgenmobility.org/products/leaperkim-oryx-electric-unicycle-176v-4700wh-battery-4200w-motor"
+            data-image="http://nextgenmobility.org/cdn/shop/files/20250712170906.jpg?v=1752338143"
+            data-desc="Ultimate speed, stability, and the longest range for all-day street dominance. Experience the king of the street!"
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Leaperkim Oryx Electric Unicycle</td>
+            <td>4700Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>4200W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Leaperkim Patton S Electric Unicycle - Tubeless"
+            data-battery="2200Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3000W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://nextgenmobility.org/products/patton-s"
+            data-image="http://nextgenmobility.org/cdn/shop/files/PS3.jpg?v=1732240387"
+            data-desc="The Patton S is one of the best small EUCs available. With its nimble 18&quot; tire and powerful 3000 watt motor, this machine excels off road and on the street!"
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Leaperkim Patton S Electric Unicycle - Tubeless</td>
+            <td>2200Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3000W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Leaperkim Sherman L Electric Unicycle Sold Out View"
+            data-battery="4000Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3200W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/leaperkim-sherman-l-electric-unicycle-pre-order"
+            data-image="http://alienrides.com/cdn/shop/files/IMAGE-EDIT_d777e33e-fd1f-42a5-896b-d5a5800033a6_1200x1200.png?v=1736375683"
+            data-desc="The Veteran Sherman L is here! Feel the power of Leaperkim&#x27;s latest offering, boasting an incredible hight voltage system combined with their plush fork style suspension."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Leaperkim Sherman L Electric Unicycle Sold Out View</td>
+            <td>4000Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3200W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Leaperkim Veteran Sherman L"
+            data-battery="4000Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3200W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://nextgenmobility.org/products/sherman-l"
+            data-image="http://nextgenmobility.org/cdn/shop/files/Sherman-LSideRight.jpg.492ad196caa478fc6083832064864bcd.jpg?v=1732502310"
+            data-desc="Leaperkim&#x27;s ultimate long range, high speed suspension EUC. The Sherman L is the undisputed king of long range riding and build quality!"
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Leaperkim Veteran Sherman L</td>
+            <td>4000Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3200W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="NEW: Inmotion P6"
+            data-battery="4,200Wh"
+            data-range="100 MILES (@20mph)"
+            data-speed="70+ MPH"
+            data-motor="6000W"
+            data-weight="112lb"
+            data-maxload="309lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/inmotion-p6"
+            data-image="http://ewheels.com/cdn/shop/files/P6-Oblique-Front-Right.jpg?v=1760380048&amp;width=2048"
+            data-desc="Bonus upgrades still available, but batch 1/mid-Dec sold out, batch 2 expected in mid-Jan. Limited Bonus Package: Over $1000 in extras, including: Extended 1-Year Warranty, $599 value Extra 14A Fast Charger, $499 value Bonus Seat, $99 value 1 Year RideConnect Access, $39 value 1 Year Price Guarantee—refunding the diff"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>NEW: Inmotion P6</td>
+            <td>4,200Wh</td>
+            <td>100 MILES (@20mph)</td>
+            <td>70+ MPH</td>
+            <td>6000W</td>
+            <td>112lb</td>
+            <td>309lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="NEW: Veteran Oryx"
+            data-battery="4,700Wh"
+            data-range="~150 miles (@ 20MPH)"
+            data-speed="60+ MPH"
+            data-motor="4200W"
+            data-weight="127lb"
+            data-maxload="330lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/new-veteran-oryx-4-700wh-battery-4-200w-motor-suspension"
+            data-image="http://ewheels.com/cdn/shop/files/Onyx_-Front-Oblique-Right.jpg?v=1752528886&amp;width=2048"
+            data-desc="70lb &amp;amp; 62lb Back in stock, with new upgraded/reinforced motor assemblies Bonus Beidou power pads included in the box, for utilizing the wheel&#x27;s full potential Huge Battery Pack: SmartBMS functionality from the Lynx &amp;amp; Sherman-L now integrated into a massive 4,700Wh 176V battery pack, made with the latest high-p"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>NEW: Veteran Oryx</td>
+            <td>4,700Wh</td>
+            <td>~150 miles (@ 20MPH)</td>
+            <td>60+ MPH</td>
+            <td>4200W</td>
+            <td>127lb</td>
+            <td>330lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="NEW: Veteran Patton-S"
+            data-battery="2,220Wh"
+            data-range="~60 miles (@ 20MPH)"
+            data-speed="40-42 MPH"
+            data-motor="3000W"
+            data-weight="80.5lb"
+            data-maxload="320lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/new-veteran-patton-s-2-220wh-battery-3-000w-motor-suspension"
+            data-image="http://ewheels.com/cdn/shop/files/Patton-S--Front-Oblique-Right_ad52473a-38c9-46f0-ad36-d2687728d6b5.jpg?v=1764364212&amp;width=2048"
+            data-desc="Back in Stock Bonus power pads included in the box, for utilizing the wheel&#x27;s full potential Upgraded Battery Pack: SmartBMS functionality from the Lynx &amp;amp; Sherman-L now included on the same 2,220Wh/126V battery pack with the latest high-power Samsung 50S cells from the Patton Updated Control Board: 24xMOSFETs with"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>NEW: Veteran Patton-S</td>
+            <td>2,220Wh</td>
+            <td>~60 miles (@ 20MPH)</td>
+            <td>40-42 MPH</td>
+            <td>3000W</td>
+            <td>80.5lb</td>
+            <td>320lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="NOSFET Aeon"
+            data-battery="N/A"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="N/A"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://ewheels.com/products/nosfet-aeon"
+            data-image="http://ewheels.com/cdn/shop/files/Aeon_Preview.webp?v=1764883392&amp;width=2048"
+            data-desc="Preorder deposit for NOSFET&#x27;s upcoming Aeon, filling the gap between the Aero and Patton-S $500 deposit or full-payment options available Bonus Powerpads included with every Aeon Specifications, product photos, and ETA to be released on December 15th, stay tuned!"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>NOSFET Aeon</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="NOSFET Aero"
+            data-battery="1,110WH"
+            data-range="35 MILES"
+            data-speed="~34 MPH"
+            data-motor="2000W"
+            data-weight="55lb"
+            data-maxload="275lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/nosfet-aero-1-110wh-battery-3-000w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/Aero_-Oblique-Front-Right.jpg?v=1736963436&amp;width=2048"
+            data-desc="Back in stock! Custom Beidou Powerpads included for free What&#x27;s New: 14&quot; Wheel, weighing ~55lb, while possessing 20% more battery capacity than it&#x27;s nearest rival &amp;amp; 10% higher maximum speed. Suspension: similar cylindrical shocks to the Patton/Lynx, with up to 70mm of travel, &amp;amp; customizable compression/reb"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>NOSFET Aero</td>
+            <td>1,110WH</td>
+            <td>35 MILES</td>
+            <td>~34 MPH</td>
+            <td>2000W</td>
+            <td>55lb</td>
+            <td>275lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="NOSFET AERO Electric Unicycle Sold Out View"
+            data-battery="1110Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="20W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/nosfet-aero-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/Screenshot_2025-02-25_181426_1200x1200.png?v=1740536176"
+            data-desc="A premium compact suspension electric unicycle made for the everyday but ready for adventures."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>NOSFET AERO Electric Unicycle Sold Out View</td>
+            <td>1110Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>20W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Nosfet Aero In Stock - The Perfect Christmas Gift"
+            data-battery="1100Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="2000W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://nextgenmobility.org/products/nosfet-aero-electric-unicycle"
+            data-image="http://nextgenmobility.org/cdn/shop/files/STUPID_DEALS_ON_NOW_1080_x_1080_px_1.png?v=1765390124"
+            data-desc="The Nesfet Aero is a game-changer of a small EUC. Perfect for beginners and advanced users, this grab-and-go EUC is perfect for rides in ultimate comfort."
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Nosfet Aero In Stock - The Perfect Christmas Gift</td>
+            <td>1100Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>2000W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="NOSFET Apex"
+            data-battery="2,700WH"
+            data-range="60 MILES"
+            data-speed="~55+MPH"
+            data-motor="3200W"
+            data-weight="85.5 lb"
+            data-maxload="300lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/nosfet-apex-2-700wh-battery-3-200w-motor"
+            data-image="http://ewheels.com/cdn/shop/files/Apex_-Front-Oblique-Right.jpg?v=1728999607&amp;width=2048"
+            data-desc="Back in stock! Bonus includes both 6pc Beidou Powerpads [choice of green or orange] &amp;amp; fairing plates Optional Seat/Trolley attachment option available for separate purchase below What&#x27;s New: the Apex sports a number of innovations to the suspension, as well as bringing a whole new level of manufacturing precision t"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>NOSFET Apex</td>
+            <td>2,700WH</td>
+            <td>60 MILES</td>
+            <td>~55+MPH</td>
+            <td>3200W</td>
+            <td>85.5 lb</td>
+            <td>300lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Nosfet Apex Electric Unicycle"
+            data-battery="2700Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3200W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://nextgenmobility.org/products/nosfet-apex-electric-unicycle"
+            data-image="http://nextgenmobility.org/cdn/shop/files/Apex_-Side-Left-Photoroom_1024x1024_6324f0b3-90f0-4128-855c-8f16ed3d7713.webp?v=1737161088"
+            data-desc="The Nosfet Apex is an electric unicycle with a revolutionary adjsutable suspension. The Apex is the performance wheel for the masses!"
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Nosfet Apex Electric Unicycle</td>
+            <td>2700Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3200W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Nosfet Apex Electric Unicycle Sold Out View"
+            data-battery="2700Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="20W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/nosfet-apex-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/mmexport1740547680634_1200x1200.jpg?v=1740547742"
+            data-desc="The Nosfet is here! Feel the power of their first offering, boasting an incredible 151V system combined with their 150mm Travel with plush fork style suspension."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Nosfet Apex Electric Unicycle Sold Out View</td>
+            <td>2700Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>20W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Pre-order InMotion P6"
+            data-battery="4200Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="6000W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://nextgenmobility.org/products/inmotion-p6-electric-unicycle"
+            data-image="http://nextgenmobility.org/cdn/shop/files/pidzoomlogo_huge_3.png?v=1760404368"
+            data-desc="Introducing the world&#x27;s fastest electric unicycle, featuring a mind-blowing 230 volt system and a 5000w motor and a 93 mph top speed!"
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Pre-order InMotion P6</td>
+            <td>4200Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>6000W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Revolutionize your ride with Grizzla Sync Pads"
+            data-battery="N/A"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://nextgenmobility.org/products/grizzla-sync-pads"
+            data-image="http://nextgenmobility.org/cdn/shop/files/Screenshot2025-08-20081145.png?v=1757647132"
+            data-desc="Dual-material EUC power pads built for performance riding, with compact form and superior ergonomics. Engineered for control, not confinement."
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Revolutionize your ride with Grizzla Sync Pads</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Solowheel Scorpion Electric Unicycle Regular price $799 View"
+            data-battery="N/A"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="1500W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/solowheel-scorpion"
+            data-image="http://alienrides.com/cdn/shop/files/Scorpion_1200x1200.png?v=1751212176"
+            data-desc="Solowheel Scorpion A practical, gyro-stabilized electric unicycle designed for everyday use. The Scorpion combines simple functionality with a few thoughtful touches to help you get around town more easily. Key Features Convertible Handle &amp;amp; Kickstand Unfold the handle to walk the wheel alongside you when riding isn"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Solowheel Scorpion Electric Unicycle Regular price $799 View</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>1500W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Solowheel Xtreme Electric Unicycle Regular price $899 View"
+            data-battery="160Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="1800W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/solowheel-xtreme-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/Xtreme2_1200x1200.png?v=1751212370"
+            data-desc="A straightforward, off-road capable electric unicycle designed for versatility and ease of use. The Xtreme features a rugged 18″ exposed wheel and contoured leg pads for added comfort and stability across varied terrain. Key Features All-Terrain ReadyTraverse streets, rough roads, dirt paths or grass with confidence, t"
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Solowheel Xtreme Electric Unicycle Regular price $899 View</td>
+            <td>160Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>1800W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Something Light is Coming: Pre-order Nosfet Aeon Now"
+            data-battery="N/A"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="6W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="N/A"
+            data-url="https://nextgenmobility.org/products/nosfet-aeon-electric-unicycle"
+            data-image="http://nextgenmobility.org/cdn/shop/files/photo_2025-12-04_07-54-44.jpg?v=1764901567"
+            data-desc="The Nosfet Aeon strikes an impressive power to weight ratio, making it perfect for both seasoned enthusiasts and total beginners alike."
+            data-source="nextgen">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Something Light is Coming: Pre-order Nosfet Aeon Now</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>6W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Veteran Lynx"
+            data-battery="2,700WH"
+            data-range="60 MILES"
+            data-speed="~55 MPH"
+            data-motor="3200W"
+            data-weight="88 LB"
+            data-maxload="290LB"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/veteran-lynx-2700wh-battery-3200w-motor-8kw-peak"
+            data-image="http://ewheels.com/cdn/shop/files/Lynx-Oblique-Front-Right_41836ea3-d22e-4b1d-9653-5b0c23b3b9d8.jpg?v=1715025943&amp;width=2048"
+            data-desc="Back in Stock Bonus: Powerpads, Pedal Lowering Bracket, &amp;amp; Seat, $400 in value Motor: 3,200W (8KW peak) high-torque motor. With the first ‘no-load’ spin rate of 125KPH Weight: through the use of magnesium alloy, Veteran has been able to keep the weight at ~40kg/88lb, while increasing the size of the motor/tire &amp;amp;"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Veteran Lynx</td>
+            <td>2,700WH</td>
+            <td>60 MILES</td>
+            <td>~55 MPH</td>
+            <td>3200W</td>
+            <td>88 LB</td>
+            <td>290LB</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Veteran Lynx Electric Unicycle 50s Regular price $3"
+            data-battery="2700Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="3200W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/veteran-lynx-electric-unicycle"
+            data-image="http://alienrides.com/cdn/shop/files/H610a929f35b6420a8f894715f22850d4u_1200x1200.webp?v=1736375671"
+            data-desc="The Veteran Lynx is here! Feel the power of Leaperkim&#x27;s latest offering, boasting an incredible 151V system combined with their plush fork style suspension."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Veteran Lynx Electric Unicycle 50s Regular price $3</td>
+            <td>2700Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>3200W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Veteran Patton S Electric Unicycle 50s Sold Out View"
+            data-battery="2200Wh"
+            data-range="N/A"
+            data-speed="N/A"
+            data-motor="18W"
+            data-weight="N/A"
+            data-maxload="N/A"
+            data-battype="Samsung 50"
+            data-url="https://alienrides.com/collections/electric-unicycles/products/veteran-patton-s-electric-unicycle-50s-pre-order-deposit"
+            data-image="http://alienrides.com/cdn/shop/files/Sfe9da9f099ef4b2db60981d5e981ee51c_1200x1200.webp?v=1736374658"
+            data-desc="The Veteran Patton S is here! Feel the power of Leaperkim&#x27;s latest offering, boasting an incredible 126V system combined with their plush fork style suspension."
+            data-source="alien">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Veteran Patton S Electric Unicycle 50s Sold Out View</td>
+            <td>2200Wh</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>18W</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+        <tr class="wheel-row"
+            data-name="Veteran Sherman-L"
+            data-battery="4,000Wh"
+            data-range="125 MILES"
+            data-speed="~57MPH"
+            data-motor="3200W"
+            data-weight="102.5lb"
+            data-maxload="320lb"
+            data-battype="Samsung 50"
+            data-url="https://ewheels.com/products/veteran-sherman-l-4-000wh-battery-3-200w-motor-8kw-peak"
+            data-image="http://ewheels.com/cdn/shop/files/Sherman-L_-Front-Oblique-Right.jpg?v=1720375300&amp;width=2048"
+            data-desc="All Variants, Back in Stock Building on the success of the Lynx, the Sherman-L provides a similar performance package, but now with 50% more capacity/range Bonus: the Sherman-Ls will be shipping out with a bonus set of Beidou Powerpads Motor: 3,200W (8KW peak) high-torque motor Weight: similar construction to the Lynx"
+            data-source="ewheels">
+            <td class="compare-col">
+                <button class="compare-btn" type="button">Compare</button>
+            </td>
+            <td>Veteran Sherman-L</td>
+            <td>4,000Wh</td>
+            <td>125 MILES</td>
+            <td>~57MPH</td>
+            <td>3200W</td>
+            <td>102.5lb</td>
+            <td>320lb</td>
+            <td>Samsung 50</td>
+        </tr>
+        
+            </tbody>
+        </table>
+        <p class="small">
+            NOTE: This is a best-effort scraper. Always double-check critical specs on the original product pages before buying.
+        </p>
+    </div>
+</div>
+
+<div class="feedback-modal-overlay" id="feedback-overlay">
+    <div class="feedback-modal" id="feedback-modal">
+        <div class="feedback-modal-header">
+            <div>
+                <div class="feedback-modal-title">What others say about this wheel</div>
+                <div class="feedback-modal-wheel" id="feedback-wheel-name"></div>
+            </div>
+            <button class="feedback-close-btn" id="feedback-close-btn" type="button">✕</button>
+        </div>
+        <ul class="feedback-list" id="feedback-list"></ul>
+    </div>
+</div>
+
+<!-- RANGE MONITOR MODAL -->
+<div class="range-modal-overlay" id="range-overlay">
+    <div class="range-modal">
+        <div class="range-modal-header">
+            <div class="range-modal-title">Range Monitor</div>
+            <button class="range-close-btn" id="range-close-btn" type="button">✕</button>
+        </div>
+        <div class="range-modal-body">
+            <iframe id="range-iframe" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    let compareMode = false;
+    let currentSource = "ewheels";  // "ewheels", "alien", or "nextgen"
+
+    // holds the currently selected wheel data (full, for UI)
+    let currentWheelPayload = null;
+
+    // numeric preset for the Range Monitor page
+    let currentRangePreset = null;
+
+    // Will hold a reference to the external window (file:// fallback)
+    let rangeMonitorWindow = null;
+
+    const FEEDBACK_DATA = {
+        "Begode A1": [
+            "Super portable and fun for short city rides.",
+            "Great starter wheel but range is limited.",
+            "Riders say the pedals are comfy for the size.",
+            "Can feel twitchy at higher speeds, stay conservative.",
+            "Perfect for tossing in the trunk as a backup EUC."
+        ],
+        "Begode EX.N": [
+            "Monster torque and great for hills.",
+            "Heavy, but stable at cruising speed.",
+            "Some riders recommend upgrading the pads and pedals.",
+            "Range is solid, especially at moderate speeds.",
+            "Keep an eye on shell/handle screws if you ride hard."
+        ],
+        "_default": [
+            "Riders describe this wheel as a solid all-rounder.",
+            "Comfort and pedal feel are often praised.",
+            "Community feedback notes that firmware can change ride feel.",
+            "Many recommend quality safety gear with this wheel.",
+            "Check community threads for long-term durability reports."
+        ]
+    };
+
+    let currentFeedbackWheel = "";
+    let currentFeedbackList = [];
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    // NEW: selected banner compact toggle
+    function setSelectedCompact(on) {
+        const wrap = document.getElementById('selected-wrapper');
+        if (!wrap) return;
+        wrap.classList.toggle('is-compact', !!on);
+    }
+
+    function renderFeedbackList() {
+        const listEl = document.getElementById('feedback-list');
+        listEl.innerHTML = "";
+        currentFeedbackList.forEach(text => {
+            const li = document.createElement('li');
+            li.className = 'feedback-item';
+            li.textContent = text;
+            listEl.appendChild(li);
+        });
+    }
+
+    function openFeedbackModal(wheelName) {
+        currentFeedbackWheel = wheelName || "This wheel";
+        currentFeedbackList = FEEDBACK_DATA[wheelName] || FEEDBACK_DATA["_default"];
+
+        const nameEl = document.getElementById('feedback-wheel-name');
+        const overlay = document.getElementById('feedback-overlay');
+
+        nameEl.textContent = currentFeedbackWheel;
+        renderFeedbackList();
+
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFeedbackModal() {
+        const overlay = document.getElementById('feedback-overlay');
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // ---------------- Video Reviews panel (replaces table below) ----------------
+
+    function showVideoPanel(wheelName) {
+        const specsWrap = document.getElementById('specs-table-wrap');
+        const videoWrap = document.getElementById('video-results-wrap');
+        const titleEl   = document.getElementById('video-results-title');
+        const subEl     = document.getElementById('video-results-subtitle');
+
+        if (specsWrap) specsWrap.style.display = 'none';
+        if (videoWrap) videoWrap.style.display = 'block';
+
+        if (titleEl) titleEl.textContent = 'Video Reviews';
+        if (subEl) subEl.textContent = (wheelName ? wheelName + ' — YouTube results' : 'YouTube results');
+
+        // NEW: shrink selected banner while Video Reviews is active
+        setSelectedCompact(true);
+    }
+
+    function hideVideoPanel() {
+        const specsWrap = document.getElementById('specs-table-wrap');
+        const videoWrap = document.getElementById('video-results-wrap');
+        const grid      = document.getElementById('video-grid');
+        const loading   = document.getElementById('video-loading');
+
+        if (videoWrap) videoWrap.style.display = 'none';
+        if (specsWrap) specsWrap.style.display = 'block';
+        if (grid) grid.innerHTML = '';
+        if (loading) loading.style.display = 'none';
+
+        // NEW: restore selected banner to full size
+        setSelectedCompact(false);
+    }
+
+    function renderVideoResults(wheelName, items) {
+        const grid = document.getElementById('video-grid');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
+        if (!items || !items.length) {
+            grid.innerHTML = '<div class="video-empty">No videos found. Try a different search phrase.</div>';
+            return;
+        }
+
+        items.forEach(v => {
+            const vid = v.videoId;
+            if (!vid) return;
+
+            const card = document.createElement('div');
+            card.className = 'video-card';
+
+            const iframe = document.createElement('iframe');
+            iframe.className = 'video-embed';
+            iframe.src = 'https://www.youtube.com/embed/' + encodeURIComponent(vid);
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframe.allowFullscreen = true;
+
+            const meta = document.createElement('div');
+            meta.className = 'video-meta';
+
+            const a = document.createElement('a');
+            a.href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(vid);
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.textContent = 'Open on YouTube';
+
+            const small = document.createElement('div');
+            small.className = 'small';
+            small.textContent = wheelName ? wheelName : '';
+
+            meta.appendChild(a);
+            meta.appendChild(small);
+
+            card.appendChild(iframe);
+            card.appendChild(meta);
+            grid.appendChild(card);
+        });
+    }
+
+    async function openVideoReviews(wheelName) {
+        const loading = document.getElementById('video-loading');
+        const grid = document.getElementById('video-grid');
+
+        showVideoPanel(wheelName);
+
+        if (grid) grid.innerHTML = '';
+        if (loading) loading.style.display = 'block';
+
+        const q = (wheelName || 'electric unicycle') + ' review';
+        const apiUrl = '/api/youtube?q=' + encodeURIComponent(q);
+
+        try {
+            const resp = await fetch(apiUrl, { cache: "no-store" });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+
+            if (loading) loading.style.display = 'none';
+            renderVideoResults(wheelName, data.items || []);
+        } catch (err) {
+            if (loading) loading.style.display = 'none';
+            if (grid) {
+                grid.innerHTML =
+                    '<div class="video-empty">Could not load YouTube results. ' +
+                    'Make sure you opened the page from the local server (http://127.0.0.1:PORT) not file://</div>';
+            }
+        }
+    }
+
+    // ------------- numeric parsing helpers (for Range Monitor & spec bars) -------------
+
+    function parseFirstNumber(str) {
+        if (!str) return null;
+        const nums = String(str).match(/(\d+(\.\d+)?)/g);
+        if (!nums || !nums.length) return null;
+        return parseFloat(nums[0]);
+    }
+
+    function parseLargestNumber(str) {
+        if (!str) return null;
+        const nums = String(str).match(/(\d+(\.\d+)?)/g);
+        if (!nums || !nums.length) return null;
+        return nums
+            .map(parseFloat)
+            .filter(v => !Number.isNaN(v))
+            .reduce((a, b) => Math.max(a, b), -Infinity);
+    }
+
+    function parseBatteryWh(batteryStr) {
+        if (!batteryStr) return 3600; // fallback
+        const m = batteryStr.match(/(\d[\d,]*)\s*Wh/i);
+        if (m) {
+            return parseInt(m[1].replace(/,/g, ""), 10);
+        }
+        const n = parseFirstNumber(batteryStr);
+        return n || 3600;
+    }
+
+    function parseRangeMiles(rangeStr) {
+        if (!rangeStr) return 40;
+        const nums = String(rangeStr).match(/(\d+(\.\d+)?)/g);
+        if (!nums || !nums.length) return 40;
+
+        const values = nums.map(parseFloat).filter(v => !Number.isNaN(v));
+        if (!values.length) return 40;
+
+        if (values.length === 2 && /-|–|to/i.test(rangeStr)) {
+            return (values[0] + values[1]) / 2;
+        }
+
+        const max = values.reduce((a, b) => Math.max(a, b), values[0]);
+        return max;
+    }
+
+    function parseSpeedMph(speedStr) {
+        if (!speedStr) return 30;
+
+        const mphMatches = [];
+        const re = /(\d+(\.\d+)?)\s*mph/gi;
+        let m;
+        while ((m = re.exec(speedStr)) !== null) {
+            mphMatches.push(parseFloat(m[1]));
+        }
+        if (mphMatches.length) {
+            return mphMatches.reduce((a, b) => Math.max(a, b), mphMatches[0]);
+        }
+
+        const n = parseLargestNumber(speedStr);
+        return n || 30;
+    }
+
+    function parseWeightLbs(weightStr) {
+        if (!weightStr) return 90;
+
+        const re = /(\d+(\.\d+)?)\s*(lb|lbs)/gi;
+        const matches = [];
+        let m;
+        while ((m = re.exec(weightStr)) !== null) {
+            matches.push(parseFloat(m[1]));
+        }
+        if (matches.length) {
+            return matches.reduce((a, b) => Math.max(a, b), matches[0]);
+        }
+
+        const n = parseLargestNumber(weightStr);
+        return n || 90;
+    }
+
+    function parseMotorW(motorStr) {
+        if (!motorStr) return 2000;
+        const m = String(motorStr).match(/(\d[\d,]*)\s*W\b/i);
+        if (m) {
+            return parseInt(m[1].replace(/,/g, ""), 10);
+        }
+        const n = parseLargestNumber(motorStr);
+        return n || 2000;
+    }
+
+    function buildWheelPayloadFromRow(row) {
+        if (!row) return null;
+        return {
+            name: row.dataset.name || 'N/A',
+            battery: row.dataset.battery || 'N/A',
+            range: row.dataset.range || 'N/A',
+            speed: row.dataset.speed || 'N/A',
+            motor: row.dataset.motor || 'N/A',
+            weight: row.dataset.weight || 'N/A',
+            maxload: row.dataset.maxload || 'N/A',
+            battype: row.dataset.battype || 'N/A',
+            source: row.dataset.source || 'ewheels',
+            url: row.dataset.url || '#'
+        };
+    }
+
+    function buildRangePresetFromRow(row) {
+        if (!row) return null;
+
+        const name    = row.dataset.name   || 'N/A';
+        const battery = row.dataset.battery || '';
+        const range   = row.dataset.range   || '';
+        const speed   = row.dataset.speed   || '';
+        const weight  = row.dataset.weight  || '';
+        const image   = row.dataset.image   || '';
+
+        const batteryWh    = parseBatteryWh(battery);
+        const claimedRange = parseRangeMiles(range);
+        const topSpeed     = parseSpeedMph(speed);
+        const wheelWeight  = parseWeightLbs(weight);
+
+        const riderWeight  = 180;
+
+        return {
+            wheelName: name,
+            batteryWh: batteryWh,
+            claimedRange: claimedRange,
+            topSpeed: topSpeed,
+            wheelWeight: wheelWeight,
+            riderWeight: riderWeight,
+            imageUrl: image
+        };
+    }
+
+    function sendWheelToRangeMonitor() {
+        if (!currentRangePreset) return;
+
+        const message = {
+            type: "EUC_RANGE_SYNC",
+            payload: currentRangePreset
+        };
+
+        const iframe = document.getElementById('range-iframe');
+
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(message, "*");
+        }
+
+        if (rangeMonitorWindow && !rangeMonitorWindow.closed) {
+            rangeMonitorWindow.postMessage(message, "*");
+        }
+    }
+
+    function openRangeModal() {
+        const overlay = document.getElementById('range-overlay');
+        const iframe  = document.getElementById('range-iframe');
+        if (!overlay || !iframe) return;
+
+        const isHttp = (location.protocol === 'http:' || location.protocol === 'https:');
+
+        if (isHttp) {
+            if (!iframe.dataset.bound) {
+                iframe.addEventListener('load', function() {
+                    sendWheelToRangeMonitor();
+                });
+                iframe.dataset.bound = '1';
+            }
+
+            if (!iframe.dataset.loaded) {
+                iframe.src = 'euc_realistic_range.html';
+                iframe.dataset.loaded = '1';
+            } else {
+                sendWheelToRangeMonitor();
+            }
+
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } else {
+            rangeMonitorWindow = window.open('euc_realistic_range.html', 'EUC_RangeMonitor');
+
+            setTimeout(function() {
+                try { sendWheelToRangeMonitor(); } catch (err) {}
+            }, 700);
+        }
+    }
+
+    function closeRangeModal() {
+        const overlay = document.getElementById('range-overlay');
+        if (!overlay) return;
+
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function siteLabelForSource(source) {
+        if (source === 'alien') return 'Alien Rides';
+        if (source === 'nextgen') return 'NextGen M';
+        return 'eWheels';
+    }
+
+    function updateSubtitle() {
+        const label = document.getElementById('subtitle-source-label');
+        if (!label) return;
+        if (currentSource === 'alien') {
+            label.textContent = 'Alien Rides – Electric Unicycles';
+        } else if (currentSource === 'nextgen') {
+            label.textContent = 'NextGen M – EUCs';
+        } else {
+            label.textContent = 'eWheels – All Vehicles';
+        }
+    }
+
+    function updateSelected(row) {
+        // If video panel is open, go back to specs when changing selection
+        const videoWrap = document.getElementById('video-results-wrap');
+        if (videoWrap && videoWrap.style.display === 'block') {
+            hideVideoPanel();
+        }
+
+        // NEW: ensure full-size banner when selecting a wheel
+        setSelectedCompact(false);
+
+        document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-row'));
+        row.classList.add('active-row');
+
+        const name = row.dataset.name || 'N/A';
+        const battery = row.dataset.battery || 'N/A';
+        const range = row.dataset.range || 'N/A';
+        const speed = row.dataset.speed || 'N/A';
+        const motor = row.dataset.motor || 'N/A';
+        const weight = row.dataset.weight || 'N/A';
+        const maxload = row.dataset.maxload || 'N/A';
+        const battype = row.dataset.battype || 'Battery Type N/A';
+        const url = row.dataset.url || '#';
+        const image = row.dataset.image || '';
+        const desc = row.dataset.desc || 'No description available.';
+        const source = row.dataset.source || 'ewheels';
+
+        document.getElementById('sel-name').textContent = name;
+        document.getElementById('sel-battery').textContent = battery;
+        document.getElementById('sel-range').textContent = range;
+        document.getElementById('sel-speed').textContent = speed;
+        document.getElementById('sel-motor').textContent = motor;
+        document.getElementById('sel-weight').textContent = weight;
+        document.getElementById('sel-maxload').textContent = maxload;
+        document.getElementById('sel-battype-badge').textContent = battype || 'Battery Type N/A';
+        document.getElementById('sel-desc').textContent = desc;
+
+        const link = document.getElementById('sel-url');
+        link.href = url;
+        link.textContent = 'View this wheel → (' + siteLabelForSource(source) + ')';
+
+        const imgBox = document.getElementById('selected-image-box');
+        imgBox.innerHTML = '';
+        if (image) {
+            const img = document.createElement('img');
+            img.src = image;
+            img.alt = name;
+            imgBox.appendChild(img);
+        } else {
+            const div = document.createElement('div');
+            div.className = 'no-image';
+            div.textContent = 'No image available';
+            imgBox.appendChild(div);
+        }
+
+        currentWheelPayload = buildWheelPayloadFromRow(row);
+        currentRangePreset  = buildRangePresetFromRow(row);
+    }
+
+    function setSpecBar(id, value, maxVal) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (value == null || !isFinite(value)) {
+            el.style.width = '0%';
+            return;
+        }
+        let pct = (value / maxVal) * 100;
+        pct = Math.max(5, Math.min(100, pct));
+        el.style.width = pct + '%';
+    }
+
+    function updateCompareBanner(row) {
+        if (!compareMode) return;
+
+        const wrapper = document.getElementById('compare-wrapper');
+        if (!wrapper) return;
+        wrapper.style.display = 'flex';
+
+        const name = row.dataset.name || 'N/A';
+        const battery = row.dataset.battery || 'N/A';
+        const range = row.dataset.range || 'N/A';
+        const speed = row.dataset.speed || 'N/A';
+        const motor = row.dataset.motor || 'N/A';
+        const weight = row.dataset.weight || 'N/A';
+        const maxload = row.dataset.maxload || 'N/A';
+        const battype = row.dataset.battype || 'Battery Type N/A';
+        const url = row.dataset.url || '#';
+        const image = row.dataset.image || '';
+        const source = row.dataset.source || 'ewheels';
+
+        document.getElementById('cmp-name').textContent = name;
+        document.getElementById('cmp-battery').textContent = battery;
+        document.getElementById('cmp-range').textContent = range;
+        document.getElementById('cmp-speed').textContent = speed;
+        document.getElementById('cmp-motor').textContent = motor;
+        document.getElementById('cmp-weight').textContent = weight;
+        document.getElementById('cmp-maxload').textContent = maxload;
+        document.getElementById('cmp-battype-badge').textContent = battype || 'Battery Type N/A';
+
+        const link = document.getElementById('cmp-url');
+        link.href = url;
+        link.textContent = 'View this wheel → (' + siteLabelForSource(source) + ')';
+
+        const imgBox = document.getElementById('cmp-image-box');
+        imgBox.innerHTML = '';
+        if (image) {
+            const img = document.createElement('img');
+            img.src = image;
+            img.alt = name;
+            imgBox.appendChild(img);
+        } else {
+            const div = document.createElement('div');
+            div.className = 'no-image';
+            div.textContent = 'No image available';
+            imgBox.appendChild(div);
+        }
+
+        const batteryWh = parseBatteryWh(battery);
+        const rangeMi   = parseRangeMiles(range);
+        const speedMph  = parseSpeedMph(speed);
+        const motorW    = parseMotorW(motor);
+        const weightLb  = parseWeightLbs(weight);
+        const maxLoadLb = parseWeightLbs(maxload);
+
+        setSpecBar('cmp-battery-bar', batteryWh, 4000);
+        setSpecBar('cmp-range-bar',   rangeMi,   120);
+        setSpecBar('cmp-speed-bar',   speedMph,  55);
+        setSpecBar('cmp-motor-bar',   motorW,    4000);
+        setSpecBar('cmp-weight-bar',  weightLb,  120);
+        setSpecBar('cmp-maxload-bar', maxLoadLb, 350);
+    }
+
+    function setCompareMode(on) {
+        compareMode = on;
+
+        document.querySelectorAll('.compare-btn').forEach(btn => {
+            if (compareMode) {
+                btn.classList.add('show');
+            } else {
+                btn.classList.remove('show');
+            }
+        });
+
+        const toggle = document.getElementById('compare-toggle-btn');
+        if (toggle) {
+            toggle.textContent = compareMode ? 'Compare EUC (On)' : 'Compare EUC';
+            toggle.classList.toggle('active', compareMode);
+        }
+
+        const wrapper = document.getElementById('compare-wrapper');
+        if (wrapper && !compareMode) {
+            wrapper.style.display = 'none';
+        }
+    }
+
+    function applySourceFilter() {
+        const rows = document.querySelectorAll('.wheel-row');
+        rows.forEach(row => {
+            if (row.dataset.source === currentSource) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function firstVisibleRowForCurrentSource() {
+        const rows = document.querySelectorAll('.wheel-row');
+        for (const row of rows) {
+            if (row.dataset.source === currentSource) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    function setSource(newSource) {
+        currentSource = newSource || 'ewheels';
+
+        document.querySelectorAll('.topbar-link').forEach(btn => {
+            const src = btn.dataset.distributor;
+            const active = (src === currentSource);
+            btn.classList.toggle('topbar-link-active', active);
+            btn.classList.toggle('topbar-link-disabled', !active);
+        });
+
+        applySourceFilter();
+        updateSubtitle();
+
+        const row = firstVisibleRowForCurrentSource();
+        if (row) {
+            updateSelected(row);
+        } else {
+            const imgBox = document.getElementById('selected-image-box');
+            if (imgBox) {
+                imgBox.innerHTML = '<div class="no-image">No wheels found</div>';
+            }
+            const desc = document.getElementById('sel-desc');
+            if (desc) {
+                desc.textContent = 'No wheels found for this distributor.';
+            }
+            currentWheelPayload = null;
+            currentRangePreset  = null;
+        }
+    }
+
+    function buildRowData(row) {
+        return {
+            name: row.dataset.name || 'N/A',
+            battery: row.dataset.battery || 'N/A',
+            range: row.dataset.range || 'N/A',
+            speed: row.dataset.speed || 'N/A',
+            motor: row.dataset.motor || 'N/A',
+            weight: row.dataset.weight || 'N/A',
+            maxload: row.dataset.maxload || 'N/A',
+            battype: row.dataset.battype || 'N/A',
+            source: row.dataset.source || 'ewheels',
+            url: row.dataset.url || '#'
+        };
+    }
+
+    function getAllRowsData() {
+        const rows = document.querySelectorAll('.wheel-row');
+        return Array.from(rows).map(buildRowData);
+    }
+
+    function collectUniqueNames() {
+        const rows = document.querySelectorAll('.wheel-row');
+        const namesSet = new Set();
+        rows.forEach(row => {
+            const n = (row.dataset.name || '').trim();
+            if (n) namesSet.add(n);
+        });
+        return Array.from(namesSet).sort((a, b) => a.localeCompare(b));
+    }
+
+    // -------- Search results window --------
+    function openSearchResultsPage(allRowsData, initialQueryLabel, initialQueryValue) {
+        const win = window.open('', '_blank');
+        if (!win) {
+            alert('Popup blocked. Please allow popups for this site to see search results.');
+            return;
+        }
+        const doc = win.document;
+
+        const names = Array.from(new Set(allRowsData.map(r => r.name))).sort();
+
+        doc.open();
+        doc.write('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>EUC Search Results</title>');
+        doc.write('<style>');
+        doc.write('body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#020617;color:#e5e7eb;margin:0;padding:0;}');
+        doc.write('.topbar{position:sticky;top:0;z-index:40;background:#020617;border-bottom:1px solid #1f2937;overflow:visible;}');
+        doc.write('.topbar-inner{max-width:1200px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}');
+        doc.write('.topbar-left{position:relative;display:flex;align-items:center;gap:8px;font-size:0.95rem;font-weight:600;color:#e5e7eb;white-space:nowrap;}');
+        doc.write('.logo-overhang{position:absolute;left:0;bottom:-35px;}');
+        doc.write('.navbar-logo{height:64px;width:auto;display:block;}');
+        doc.write('.topbar-title{margin-left:80px;}');
+        doc.write('.topbar-links{display:flex;align-items:center;gap:10px;}');
+        doc.write('.topbar-link{display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border-radius:999px;border:1px solid #1f2937;font-size:0.85rem;font-weight:600;text-decoration:none;color:#e5e7eb;background:#0f172a;white-space:nowrap;cursor:pointer;}');
+        doc.write('.topbar-link-active{background:#0ea5e9;color:#f9fafb;opacity:1;}');
+        doc.write('.topbar-home-btn{background:#111827;color:#e5e7eb;}');
+        doc.write('.topbar-home-btn:hover{background:#1f2937;}');
+        doc.write('.topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}');
+        doc.write('.topbar-search{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}');
+        doc.write('#name-search-input{padding:4px 8px;border-radius:999px;border:1px solid #1f2937;background:#020617;color:#e5e7eb;font-size:0.8rem;min-width:160px;}');
+        doc.write('#name-search-select{padding:4px 8px;border-radius:999px;border:1px solid #1f2937;background:#020617;color:#e5e7eb;font-size:0.8rem;max-width:220px;}');
+        doc.write('#name-search-btn{padding:5px 12px;border-radius:999px;border:1px solid #1f2937;background:#22c55e;color:#0b1120;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;}');
+        doc.write('.container{max-width:1200px;margin:0 auto;padding:20px;}');
+        doc.write('h1{color:#38bdf8;margin-top:8px;}');
+        doc.write('.subtitle{color:#9ca3af;margin-bottom:1rem;font-size:0.9rem;}');
+        doc.write('table{border-collapse:collapse;width:100%;margin-top:1rem;font-size:0.9rem;}');
+        doc.write('th,td{border:1px solid #1f2937;padding:8px 10px;text-align:left;}');
+        doc.write('th{background:#0f172a;}');
+        doc.write('tr:nth-child(even){background:#020617;}');
+        doc.write('tr:nth-child(odd){background:#020617;}');
+        doc.write('tr:hover{background:#111827;}');
+        doc.write('a{color:#38bdf8;}');
+        doc.write('.small{font-size:0.8rem;color:#6b7280;margin-top:0.75rem;}');
+        doc.write('</style></head><body>');
+
+        doc.write('<div class="topbar"><div class="topbar-inner">');
+        doc.write('<div class="topbar-left">');
+        doc.write('<div class="logo-overhang"><img src="EUCVault_Logo.png" class="navbar-logo" alt="EUC Vault Logo"></div>');
+        doc.write('<div class="topbar-title"></div>');
+        doc.write('</div>');
+        doc.write('<div class="topbar-links">');
+        doc.write('<button class="topbar-link topbar-home-btn" type="button" onclick="window.close()">Home</button>');
+        doc.write('<span class="topbar-link topbar-link-active">All distributors</span>');
+        doc.write('</div>');
+        doc.write('<div class="topbar-right"><div class="topbar-search">');
+        doc.write('<input id="name-search-input" type="text" placeholder="Search by wheel name..." />');
+        doc.write('<select id="name-search-select"><option value="">Or pick a wheel…</option></select>');
+        doc.write('<button id="name-search-btn" type="button">Search</button>');
+        doc.write('</div></div></div></div>');
+
+        doc.write('<div class="container">');
+        doc.write('<h1>EUC Search Results</h1>');
+        doc.write('<div class="subtitle">Matches for "<strong>' + escapeHtml(initialQueryLabel || '') + '</strong>". Showing results from all distributors.</div>');
+        doc.write('<table><thead><tr>');
+        doc.write('<th>EUC Name</th>');
+        doc.write('<th>Battery Capacity</th>');
+        doc.write('<th>Range</th>');
+        doc.write('<th>Speed</th>');
+        doc.write('<th>Motor Power</th>');
+        doc.write('<th>Weight</th>');
+        doc.write('<th>Max Load</th>');
+        doc.write('<th>Battery Type</th>');
+        doc.write('<th>Distributor</th>');
+        doc.write('</tr></thead><tbody id="results-tbody"></tbody></table>');
+        doc.write('<p class="small">Note: This view is unbiased by distributor tabs and lists all wheels together.</p>');
+        doc.write('</div>');
+
+        const payload = JSON.stringify(allRowsData).replace(/</g, "\u003c");
+        const namesPayload = JSON.stringify(names).replace(/</g, "\u003c");
+
+        doc.write('<script>');
+        doc.write('const ALL_ROWS_DATA = ' + payload + ';');
+        doc.write('const ALL_WHEEL_NAMES = ' + namesPayload + ';');
+        doc.write('const initialQueryValue = ' + JSON.stringify(initialQueryValue || "") + ';');
+        doc.write('(function(){');
+        doc.write('  function siteLabelForSource(source){ if(source==="alien")return"Alien Rides"; if(source==="nextgen")return"NextGen M"; return"eWheels"; }');
+        doc.write('  function renderRows(query){');
+        doc.write('    var q=(query||"").toLowerCase();');
+        doc.write('    var tbody=document.getElementById("results-tbody");');
+        doc.write('    if(!tbody) return;');
+        doc.write('    tbody.innerHTML="";');
+        doc.write('    ALL_ROWS_DATA.forEach(function(r){');
+        doc.write('      var nameL=(r.name||"").toLowerCase();');
+        doc.write('      if(!q || nameL.indexOf(q)!==-1){');
+        doc.write('        var tr=document.createElement("tr");');
+        doc.write('        function td(text){var c=document.createElement("td");c.textContent=text;return c;}');
+        doc.write('        var linkTd=document.createElement("td");');
+        doc.write('        var a=document.createElement("a");a.href=r.url||"#";a.target="_blank";a.textContent=r.name||"N/A";linkTd.appendChild(a);');
+        doc.write('        tr.appendChild(linkTd);');
+        doc.write('        tr.appendChild(td(r.battery||"N/A"));');
+        doc.write('        tr.appendChild(td(r.range||"N/A"));');
+        doc.write('        tr.appendChild(td(r.speed||"N/A"));');
+        doc.write('        tr.appendChild(td(r.motor||"N/A"));');
+        doc.write('        tr.appendChild(td(r.weight||"N/A"));');
+        doc.write('        tr.appendChild(td(r.maxload||"N/A"));');
+        doc.write('        tr.appendChild(td(r.battype||"N/A"));');
+        doc.write('        tr.appendChild(td(siteLabelForSource(r.source)));');
+        doc.write('        tbody.appendChild(tr);');
+        doc.write('      }');
+        doc.write('    });');
+        doc.write('  }');
+        doc.write('  var inputEl=document.getElementById("name-search-input");');
+        doc.write('  var selectEl=document.getElementById("name-search-select");');
+        doc.write('  var btn=document.getElementById("name-search-btn");');
+        doc.write('  if(selectEl && Array.isArray(ALL_WHEEL_NAMES)){');
+        doc.write('    ALL_WHEEL_NAMES.forEach(function(name){var o=document.createElement("option");o.value=name;o.textContent=name;selectEl.appendChild(o);});');
+        doc.write('    selectEl.addEventListener("change",function(){ if(inputEl) inputEl.value=selectEl.value; renderRows(selectEl.value); });');
+        doc.write('  }');
+        doc.write('  if(btn){ btn.addEventListener("click",function(e){e.preventDefault();var q=inputEl?inputEl.value:"";renderRows(q);}); }');
+        doc.write('  if(inputEl){ inputEl.addEventListener("keydown",function(e){ if(e.key==="Enter"){e.preventDefault();renderRows(inputEl.value);} }); }');
+        doc.write('  if(inputEl) inputEl.value = initialQueryValue;');
+        doc.write('  renderRows(initialQueryValue);');
+        doc.write('})();');
+        doc.write('</' + 'script>');
+        doc.write('</body></html>');
+        doc.close();
+    }
+
+    function performNameSearch() {
+        const inputEl = document.getElementById('name-search-input');
+        const selectEl = document.getElementById('name-search-select');
+        if (!inputEl || !selectEl) return;
+
+        const queryRaw = (inputEl.value || '').trim();
+        const dropdownValue = (selectEl.value || '').trim();
+
+        let searchLabel = '';
+        let queryForResults = '';
+
+        if (dropdownValue) {
+            searchLabel = dropdownValue;
+            queryForResults = dropdownValue;
+        } else if (queryRaw) {
+            searchLabel = queryRaw;
+            queryForResults = queryRaw;
+        } else {
+            alert('Type a wheel name or pick one from the list.');
+            return;
+        }
+
+        const allRowsData = getAllRowsData();
+        if (!allRowsData.length) {
+            alert('No wheels loaded in the table yet.');
+            return;
+        }
+
+        openSearchResultsPage(allRowsData, searchLabel, queryForResults);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('.wheel-row');
+        rows.forEach(row => {
+            row.addEventListener('click', function() {
+                if (row.dataset.source !== currentSource) return;
+                updateSelected(row);
+            });
+        });
+
+        const compareToggleBtn = document.getElementById('compare-toggle-btn');
+        if (compareToggleBtn) {
+            compareToggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                setCompareMode(!compareMode);
+            });
+        }
+
+        const feedbackBtn = document.getElementById('feedback-btn');
+        if (feedbackBtn) {
+            feedbackBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const nameEl = document.getElementById('sel-name');
+                const wheelName = nameEl ? nameEl.textContent.trim() : 'This wheel';
+                openFeedbackModal(wheelName);
+            });
+        }
+
+        // Video Reviews button click (renders below, replaces table)
+        const videoReviewsBtn = document.getElementById('video-reviews-btn');
+        if (videoReviewsBtn) {
+            videoReviewsBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const nameEl = document.getElementById('sel-name');
+                const wheelName = nameEl ? nameEl.textContent.trim() : 'Electric Unicycle';
+                openVideoReviews(wheelName);
+            });
+        }
+
+        // Back to specs button
+        const backBtn = document.getElementById('video-back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                hideVideoPanel();
+            });
+        }
+
+        const cmpFeedbackBtn = document.querySelector('.cmp-feedback-btn');
+        if (cmpFeedbackBtn) {
+            cmpFeedbackBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const nameEl = document.getElementById('cmp-name');
+                const wheelName = nameEl ? nameEl.textContent.trim() : 'This wheel';
+                openFeedbackModal(wheelName);
+            });
+        }
+
+        document.querySelectorAll('.compare-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const row = btn.closest('.wheel-row');
+                if (row && row.dataset.source === currentSource) {
+                    updateCompareBanner(row);
+                }
+            });
+        });
+
+        const clearBtn = document.querySelector('.compare-clear-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const wrapper = document.getElementById('compare-wrapper');
+                if (wrapper) {
+                    wrapper.style.display = 'none';
+                }
+            });
+        }
+
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        if (feedbackOverlay) {
+            feedbackOverlay.addEventListener('click', function(e) {
+                if (e.target === feedbackOverlay) {
+                    closeFeedbackModal();
+                }
+            });
+        }
+
+        const feedbackCloseBtn = document.getElementById('feedback-close-btn');
+        if (feedbackCloseBtn) {
+            feedbackCloseBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeFeedbackModal();
+            });
+        }
+
+        const rangeBtn = document.getElementById('range-monitor-btn');
+        if (rangeBtn) {
+            rangeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openRangeModal();
+            });
+        }
+
+        const rangeOverlay = document.getElementById('range-overlay');
+        if (rangeOverlay) {
+            rangeOverlay.addEventListener('click', function(e) {
+                if (e.target === rangeOverlay) {
+                    closeRangeModal();
+                }
+            });
+        }
+
+        const rangeCloseBtn = document.getElementById('range-close-btn');
+        if (rangeCloseBtn) {
+            rangeCloseBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeRangeModal();
+            });
+        }
+
+        document.querySelectorAll('.topbar-link').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const src = btn.dataset.distributor;
+                if (src === 'ewheels' || src === 'alien' || src === 'nextgen') {
+                    setSource(src);
+                }
+            });
+        });
+
+        const selectEl = document.getElementById('name-search-select');
+        const inputEl = document.getElementById('name-search-input');
+        if (selectEl) {
+            const names = collectUniqueNames();
+            names.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                selectEl.appendChild(opt);
+            });
+            selectEl.addEventListener('change', function() {
+                if (inputEl) {
+                    inputEl.value = selectEl.value;
+                }
+            });
+        }
+
+        const searchBtn = document.getElementById('name-search-btn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                performNameSearch();
+            });
+        }
+        if (inputEl) {
+            inputEl.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performNameSearch();
+                }
+            });
+        }
+
+        setCompareMode(false);
+        setSource(currentSource || 'ewheels');
+    });
+</script>
+
+</body>
+</html>
