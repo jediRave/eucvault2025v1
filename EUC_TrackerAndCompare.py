@@ -992,67 +992,6 @@ def build_html_table(eucs):
             border-bottom: 1px solid #020617;
         }
 
-        /* Range Monitor modal */
-        .range-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15,23,42,0.85);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 60;
-        }
-        .range-modal {
-            background: #020617;
-            border-radius: 12px;
-            border: 1px solid #1f2937;
-            max-width: 1100px;
-            width: 95%;
-            max-height: 80vh;
-            padding: 12px 14px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .range-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 4px;
-        }
-        .range-modal-title {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        .range-close-btn {
-            border: none;
-            background: #111827;
-            color: #e5e7eb;
-            border-radius: 999px;
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        .range-close-btn:hover {
-            background: #1f2937;
-        }
-        .range-modal-body {
-            flex: 1;
-            min-height: 480px;
-            overflow: hidden;
-            border-radius: 8px;
-            border: 1px solid #111827;
-        }
-        .range-modal-body iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #020617;
-        }
-
         /* --- Video Reviews Results Panel --- */
         .video-results-wrap {
             display: none;
@@ -1390,19 +1329,6 @@ def build_html_table(eucs):
     </div>
 </div>
 
-<!-- RANGE MONITOR MODAL -->
-<div class="range-modal-overlay" id="range-overlay">
-    <div class="range-modal">
-        <div class="range-modal-header">
-            <div class="range-modal-title">Range Monitor</div>
-            <button class="range-close-btn" id="range-close-btn" type="button">✕</button>
-        </div>
-        <div class="range-modal-body">
-            <iframe id="range-iframe" src="" frameborder="0"></iframe>
-        </div>
-    </div>
-</div>
-
 <script>
     let compareMode = false;
     let currentSource = "__FIRST_SOURCE__";  // "ewheels", "alien", or "nextgen"
@@ -1413,7 +1339,7 @@ def build_html_table(eucs):
     // numeric preset for the Range Monitor page
     let currentRangePreset = null;
 
-    // Will hold a reference to the external window (file:// fallback)
+    // Will hold a reference to the external window
     let rangeMonitorWindow = null;
 
     const FEEDBACK_DATA = {
@@ -1453,7 +1379,7 @@ def build_html_table(eucs):
             .replace(/'/g, "&#39;");
     }
 
-    // NEW: selected banner compact toggle
+    // selected banner compact toggle
     function setSelectedCompact(on) {
         const wrap = document.getElementById('selected-wrapper');
         if (!wrap) return;
@@ -1505,7 +1431,6 @@ def build_html_table(eucs):
         if (titleEl) titleEl.textContent = 'Video Reviews';
         if (subEl) subEl.textContent = (wheelName ? wheelName + ' — YouTube results' : 'YouTube results');
 
-        // NEW: shrink selected banner while Video Reviews is active
         setSelectedCompact(true);
     }
 
@@ -1520,7 +1445,6 @@ def build_html_table(eucs):
         if (grid) grid.innerHTML = '';
         if (loading) loading.style.display = 'none';
 
-        // NEW: restore selected banner to full size
         setSelectedCompact(false);
     }
 
@@ -1732,64 +1656,52 @@ def build_html_table(eucs):
         };
     }
 
+    // ---------------- Range Monitor: OPEN FULL PAGE (NO IFRAME) ----------------
+
     function sendWheelToRangeMonitor() {
         if (!currentRangePreset) return;
+        if (!rangeMonitorWindow || rangeMonitorWindow.closed) return;
 
         const message = {
             type: "EUC_RANGE_SYNC",
             payload: currentRangePreset
         };
 
-        const iframe = document.getElementById('range-iframe');
-
-        if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage(message, "*");
-        }
-
-        if (rangeMonitorWindow && !rangeMonitorWindow.closed) {
+        try {
             rangeMonitorWindow.postMessage(message, "*");
-        }
+        } catch (e) {}
     }
 
-    function openRangeModal() {
-        const overlay = document.getElementById('range-overlay');
-        const iframe  = document.getElementById('range-iframe');
-        if (!overlay || !iframe) return;
-
+    function getRangeMonitorUrl() {
+        // Prefer absolute URL when served over http(s), so the new tab always resolves correctly.
         const isHttp = (location.protocol === 'http:' || location.protocol === 'https:');
-
         if (isHttp) {
-            if (!iframe.dataset.bound) {
-                iframe.addEventListener('load', function() {
-                    sendWheelToRangeMonitor();
-                });
-                iframe.dataset.bound = '1';
-            }
-
-            if (!iframe.dataset.loaded) {
-                iframe.src = 'euc_realistic_range.html';
-                iframe.dataset.loaded = '1';
-            } else {
-                sendWheelToRangeMonitor();
-            }
-
-            overlay.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        } else {
-            rangeMonitorWindow = window.open('euc_realistic_range.html', 'EUC_RangeMonitor');
-
-            setTimeout(function() {
-                try { sendWheelToRangeMonitor(); } catch (err) {}
-            }, 700);
+            return location.origin + '/euc_realistic_range.html';
         }
+        return 'euc_realistic_range.html';
     }
 
-    function closeRangeModal() {
-        const overlay = document.getElementById('range-overlay');
-        if (!overlay) return;
+    function openRangeMonitorPage() {
+        const url = getRangeMonitorUrl();
 
-        overlay.style.display = 'none';
-        document.body.style.overflow = '';
+        // Reuse same named window if possible, otherwise create it.
+        rangeMonitorWindow = window.open(url, 'EUC_RangeMonitor');
+
+        if (!rangeMonitorWindow) {
+            alert('Popup blocked. Please allow popups for this site to open Range Monitor.');
+            return;
+        }
+
+        // Send the current wheel preset multiple times briefly to catch the new page after load.
+        let tries = 0;
+        const maxTries = 25; // ~25 * 250ms = ~6.25s
+        const timer = setInterval(() => {
+            tries++;
+            sendWheelToRangeMonitor();
+            if (tries >= maxTries || !rangeMonitorWindow || rangeMonitorWindow.closed) {
+                clearInterval(timer);
+            }
+        }, 250);
     }
 
     function siteLabelForSource(source) {
@@ -1817,7 +1729,7 @@ def build_html_table(eucs):
             hideVideoPanel();
         }
 
-        // NEW: ensure full-size banner when selecting a wheel
+        // ensure full-size banner when selecting a wheel
         setSelectedCompact(false);
 
         document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-row'));
@@ -1866,6 +1778,9 @@ def build_html_table(eucs):
 
         currentWheelPayload = buildWheelPayloadFromRow(row);
         currentRangePreset  = buildRangePresetFromRow(row);
+
+        // If Range Monitor is already open, keep it synced as you click wheels
+        sendWheelToRangeMonitor();
     }
 
     function setSpecBar(id, value, maxVal) {
@@ -2298,28 +2213,12 @@ def build_html_table(eucs):
             });
         }
 
+        // Range Monitor: open full page (no iframe)
         const rangeBtn = document.getElementById('range-monitor-btn');
         if (rangeBtn) {
             rangeBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                openRangeModal();
-            });
-        }
-
-        const rangeOverlay = document.getElementById('range-overlay');
-        if (rangeOverlay) {
-            rangeOverlay.addEventListener('click', function(e) {
-                if (e.target === rangeOverlay) {
-                    closeRangeModal();
-                }
-            });
-        }
-
-        const rangeCloseBtn = document.getElementById('range-close-btn');
-        if (rangeCloseBtn) {
-            rangeCloseBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                closeRangeModal();
+                openRangeMonitorPage();
             });
         }
 
