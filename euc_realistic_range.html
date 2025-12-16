@@ -1180,9 +1180,19 @@
       const homeBtn = document.getElementById("topbar-home-btn");
       if (homeBtn) {
         homeBtn.addEventListener("click", () => {
-          // open main EUC Vault table in a new tab
-          window.open("euc_table.html", "_blank");
-        });
+          const homeUrl = "index.html"; // or whatever your main page is
+
+          if (window.opener && !window.opener.closed) {
+    // If opened from EUC Vault, just go back to it
+            window.opener.focus();
+            try { window.opener.location.href = homeUrl; } catch (e) {}
+            window.close();
+          } else {
+    // Fallback: open home in this tab
+            window.location.href = homeUrl;
+  }
+});
+
       }
 
       const searchBtn = document.getElementById("topbar-search-btn");

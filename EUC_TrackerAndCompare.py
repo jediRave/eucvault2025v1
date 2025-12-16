@@ -1682,27 +1682,35 @@ def build_html_table(eucs):
     }
 
     function openRangeMonitorPage() {
-        const url = getRangeMonitorUrl();
+  const url = getRangeMonitorUrl();
 
-        // Reuse same named window if possible, otherwise create it.
-        rangeMonitorWindow = window.open(url, 'EUC_RangeMonitor');
+  // Reuse existing window reference if possible
+  if (rangeMonitorWindow && !rangeMonitorWindow.closed) {
+    rangeMonitorWindow.focus();
+    // optional: ensure it's on the right page
+    try { rangeMonitorWindow.location.href = url; } catch (e) {}
+  } else {
+    // IMPORTANT: use _blank, NOT a named window
+    rangeMonitorWindow = window.open(url, '_blank', 'noopener');
+  }
 
-        if (!rangeMonitorWindow) {
-            alert('Popup blocked. Please allow popups for this site to open Range Monitor.');
-            return;
-        }
+  if (!rangeMonitorWindow) {
+    alert('Popup blocked. Please allow popups for this site to open Range Monitor.');
+    return;
+  }
 
-        // Send the current wheel preset multiple times briefly to catch the new page after load.
-        let tries = 0;
-        const maxTries = 25; // ~25 * 250ms = ~6.25s
-        const timer = setInterval(() => {
-            tries++;
-            sendWheelToRangeMonitor();
-            if (tries >= maxTries || !rangeMonitorWindow || rangeMonitorWindow.closed) {
-                clearInterval(timer);
-            }
-        }, 250);
+  // Send preset a few times to catch load
+  let tries = 0;
+  const maxTries = 25;
+  const timer = setInterval(() => {
+    tries++;
+    sendWheelToRangeMonitor();
+    if (tries >= maxTries || !rangeMonitorWindow || rangeMonitorWindow.closed) {
+      clearInterval(timer);
     }
+  }, 250);
+}
+
 
     function siteLabelForSource(source) {
         if (source === 'alien') return 'Alien Rides';
