@@ -4318,11 +4318,19 @@
 
         const rangeBtn = document.getElementById('range-monitor-btn');
         if (rangeBtn) {
-            rangeBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                openRangeModal();
-            });
+          rangeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+
+            // Always navigate the FULL page (escapes iframes too)
+            const url = new URL('euc_realistic_range.html', window.location.href);
+
+            // OPTIONAL: if you already have a payload you want to pass, add query params here
+            // url.searchParams.set('wheel', currentWheelPayload?.name || '');
+
+            window.top.location.assign(url.toString());
+          });
         }
+
 
         const rangeOverlay = document.getElementById('range-overlay');
         if (rangeOverlay) {
