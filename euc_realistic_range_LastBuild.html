@@ -1131,7 +1131,7 @@
 
     function getPresetFromQuery() {
       const params = new URLSearchParams(window.location.search);
-      if ([...params].length === 0) return null;
+      if (!params.toString()) return null;
 
       const preset = {};
       if (params.get("wheelName")) preset.wheelName = params.get("wheelName");
