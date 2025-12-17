@@ -36,6 +36,23 @@
       padding: 16px 16px 24px 16px;
     }
 
+    /* Feedback button style block */
+        .feedback-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #35e0ff;
+            color: #000;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            box-shadow: 0 0 18px rgba(53, 224, 255, 0.45);
+            z-index: 9999;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
     /* ===== Top menu bar (same style as main page) ===== */
     .topbar {
       position: sticky;
@@ -575,6 +592,16 @@
   </style>
 </head>
 <body>
+
+  <!-- Feedback button-->
+  <a
+  href="https://forms.gle/466o1D99f2qcvQ9v7"
+  target="_blank"
+  rel="noopener"
+  class="feedback-btn"
+>
+  💬 Feedback
+</a>
 
   <!-- Top menu bar (navigation + search back to main EUC Vault page) -->
   <div class="topbar">
