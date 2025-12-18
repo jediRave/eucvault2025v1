@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EUC Vault — Compare • Predict • Buy</title>
+  <meta name="description" content="Compare electric unicycles, predict real-world range, and choose the right wheel with confidence." />
+  <style>
+body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #020617;
+            color: #e5e7eb;
+            padding: 0;
+            margin: 0;
+        }
+body {
+            flex: 1;
+            min-height: 480px;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid #111827;
+        }
+.topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: #020617;
+            border-bottom: 1px solid #1f2937;
+            overflow: visible; /* allow logo to overhang */
+        }
+.topbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+.topbar-left {
+            position: relative; /* anchor for overhang logo */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #e5e7eb;
+            white-space: nowrap;
+        }
+.topbar-title {
+            margin-left: 80px; /* push text to the right of the logo */
+        }
+.topbar-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+.topbar-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #e5e7eb;
+            background: #0f172a;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+.topbar-link-active {
+            background: #0ea5e9;
+            color: #f9fafb;
+            opacity: 1;
+        }
+.topbar-link-disabled {
+            opacity: 0.5;
+        }
+.topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+.topbar-search {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+.logo-overhang {
+            position: absolute;
+            left: 0;
+            bottom: -45px;  /* how far logo hangs below the bar */
+        }
+.navbar-logo {
+            height: 64px;  /* adjust for bigger/smaller badge */
+            width: auto;
+            display: block;
+        }
+/* ===== HOME PAGE ===== */
+.page{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 22px 18px 80px;
+}
+.hero{
+  margin-top: 72px;
+  border: 1px solid #1f2937;
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(900px 500px at 20% 0%, rgba(53,224,255,0.20), rgba(2,6,23,0) 60%),
+    radial-gradient(900px 500px at 85% 10%, rgba(255,79,154,0.12), rgba(2,6,23,0) 55%),
+    linear-gradient(180deg, rgba(11,15,36,1) 0%, rgba(2,6,23,1) 70%);
+  box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+}
+.hero-inner{
+  padding: 34px 26px;
+  display: grid;
+  grid-template-columns: 1.25fr 0.9fr;
+  gap: 18px;
+  align-items: center;
+}
+.kicker{
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: .82rem;
+  color: var(--text-muted);
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: rgba(15,23,42,0.55);
+  width: fit-content;
+}
+.hero h1{
+  margin: 14px 0 10px;
+  font-size: clamp(2.0rem, 3.5vw, 3.1rem);
+  line-height: 1.05;
+}
+.hero p{
+  margin: 0;
+  max-width: 56ch;
+  color: var(--text-muted);
+  font-size: 1.02rem;
+}
+.ctas{
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.cta{
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+  padding: 14px 14px;
+  background: rgba(15,23,42,0.85);
+  color: var(--text-main);
+  text-decoration: none;
+  display: block;
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.25);
+}
+.cta:hover{
+  transform: translateY(-2px);
+  border-color: rgba(56,189,248,0.65);
+  box-shadow: 0 18px 34px rgba(0,0,0,0.35);
+}
+.cta .title{
+  display:flex; align-items:center; justify-content:space-between; gap: 10px;
+  font-weight: 900;
+}
+.cta .desc{
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: .88rem;
+  line-height: 1.35;
+}
+.cta.primary{
+  background: linear-gradient(180deg, rgba(34,197,94,0.18), rgba(15,23,42,0.92));
+  border-color: rgba(34,197,94,0.45);
+}
+.cta.accent{
+  background: linear-gradient(180deg, rgba(53,224,255,0.16), rgba(15,23,42,0.92));
+  border-color: rgba(56,189,248,0.45);
+}
+.cta.warn{
+  background: linear-gradient(180deg, rgba(249,115,22,0.16), rgba(15,23,42,0.92));
+  border-color: rgba(249,115,22,0.45);
+}
+.hero-card{
+  border: 1px solid #1f2937;
+  border-radius: 18px;
+  background: rgba(2,6,23,0.65);
+  padding: 16px;
+}
+.hero-card h3{ margin: 0 0 8px; font-size: 1.02rem; }
+.hero-card ul{
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+  line-height: 1.55;
+  font-size: .92rem;
+}
+.section{
+  margin-top: 22px;
+  border: 1px solid #111827;
+  border-radius: 18px;
+  background: rgba(15,23,42,0.55);
+  padding: 18px;
+}
+.section h2{ margin: 0 0 10px; font-size: 1.25rem; }
+.grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.card{
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(2,6,23,0.7);
+}
+.card h3{ margin:0 0 6px; font-size: 1.02rem; }
+.card p{ margin:0; color: var(--text-muted); font-size: .92rem; line-height: 1.45; }
+.steps{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.step{
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(2,6,23,0.7);
+}
+.step .n{ font-weight: 900; color: rgba(56,189,248,0.95); font-size: .92rem; }
+.footer{
+  margin-top: 22px;
+  color: var(--text-muted);
+  font-size: .88rem;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.pill{
+  display:inline-flex;
+  gap: 8px;
+  align-items:center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: rgba(2,6,23,0.7);
+  color: var(--text-muted);
+  text-decoration:none;
+}
+.pill:hover{ border-color: rgba(56,189,248,0.65); }
+@media (max-width: 980px){
+  .hero-inner{ grid-template-columns: 1fr; }
+  .ctas{ grid-template-columns: 1fr; }
+  .grid{ grid-template-columns: 1fr; }
+  .steps{ grid-template-columns: 1fr; }
+  .hero{ margin-top: 64px; }
+}
+
+  </style>
+</head>
+<body>
+<div class="topbar">
+    <div class="topbar-inner">
+        <div class="topbar-left">
+            <div class="logo-overhang">
+                <img src="EUCVault_Logo.png" class="navbar-logo" alt="EUC Vault Logo">
+            </div>
+        </div>
+        <div class="topbar-links">
+            <button class="topbar-link topbar-link-active"
+                    type="button"
+                    data-distributor="ewheels">
+                eWheels
+            </button>
+            <button class="topbar-link topbar-link-disabled"
+                    type="button"
+                    data-distributor="alien">
+                Alien Rides
+            </button>
+            <button class="topbar-link topbar-link-disabled"
+                    type="button"
+                    data-distributor="nextgen">
+                NextGen M
+            </button>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-search">
+                <input id="name-search-input" type="text" placeholder="Search wheel name..." />
+                <select id="name-search-select">
+                    <option value="">Or pick a wheel…</option>
+                </select>
+                <button id="name-search-btn" type="button">Search</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<main class="page">
+  <section class="hero" aria-label="Welcome">
+    <div class="hero-inner">
+      <div>
+        <div class="kicker">⚡ EUC Vault • Tools for riders</div>
+        <h1>Compare. Predict. Choose Smarter.</h1>
+        <p>Compare electric unicycles, predict real-world range, and choose the right wheel with confidence.</p>
+
+        <div class="ctas" role="navigation" aria-label="Primary actions">
+          <a class="cta accent" href="compare.html">
+            <div class="title"><span>⚖️ Compare Wheels</span><span>→</span></div>
+            <div class="desc">Pick two+ wheels and see the differences instantly.</div>
+          </a>
+
+          <a class="cta primary" href="range.html">
+            <div class="title"><span>📊 Predict Your Range</span><span>→</span></div>
+            <div class="desc">Estimate realistic range using weight, terrain, speed, and temperature.</div>
+          </a>
+
+          <a class="cta warn" href="search.html">
+            <div class="title"><span>🏪 Compare Distributors</span><span>→</span></div>
+            <div class="desc">Browse listings by distributor and find the best place to buy.</div>
+          </a>
+        </div>
+      </div>
+
+      <aside class="hero-card" aria-label="What you'll do here">
+        <h3>What EUC Vault helps you do</h3>
+        <ul>
+          <li><b>Decide faster</b> with side-by-side comparisons.</li>
+          <li><b>Plan rides</b> with realistic range expectations.</li>
+          <li><b>Shop smarter</b> by checking multiple distributors.</li>
+          <li><b>Stay confident</b> with a clean, rider-first workflow.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" aria-label="Tools">
+    <h2>Core tools</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>⚖️ Wheel Comparison</h3>
+        <p>Compare specs, battery, weight, suspension, and performance notes in a clean side-by-side view.</p>
+      </div>
+      <div class="card">
+        <h3>📉 Realistic Range Estimator</h3>
+        <p>Adjust rider weight, riding style, terrain, temperature, and distance for a practical range forecast.</p>
+      </div>
+      <div class="card">
+        <h3>🏪 Distributor Finder</h3>
+        <p>Filter and search wheels across distributors so you can spot availability and options quickly.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-label="How it works">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="n">01 • Pick a path</div>
+        <p style="margin:6px 0 0; color: var(--text-muted); font-size:.92rem; line-height:1.45;">
+          Start with <b>Compare</b>, <b>Range</b>, or <b>Distributors</b>—whatever matches what you’re trying to solve.
+        </p>
+      </div>
+      <div class="step">
+        <div class="n">02 • Choose your wheel(s)</div>
+        <p style="margin:6px 0 0; color: var(--text-muted); font-size:.92rem; line-height:1.45;">
+          Use the top search bar to jump straight to a wheel name, then drill into the tools.
+        </p>
+      </div>
+      <div class="step">
+        <div class="n">03 • Make the call</div>
+        <p style="margin:6px 0 0; color: var(--text-muted); font-size:.92rem; line-height:1.45;">
+          Get a clear answer: which wheel fits your needs, what range to expect, and where to buy.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-label="Feedback">
+    <h2>Help shape EUC Vault</h2>
+    <div class="grid">
+      <div class="card" style="grid-column: 1 / -1;">
+        <p style="margin:0; color: var(--text-muted); line-height:1.5;">
+          Want a feature, found a bug, or have a wheel you want added? Send quick feedback and help improve the Vault.
+        </p>
+        <div style="margin-top: 12px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a class="pill" href="https://forms.gle/466o1D99f2qcvQ9v7" target="_blank" rel="noopener">💬 Send feedback</a>
+          <a class="pill" href="search.html">🔎 Browse wheels</a>
+          <a class="pill" href="compare.html">⚖️ Start a comparison</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer" aria-label="Footer">
+    <div>© EUC Vault • Built for riders • Fast, clean, practical.</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="pill" href="compare.html">Compare</a>
+      <a class="pill" href="range.html">Range</a>
+      <a class="pill" href="search.html">Search</a>
+    </div>
+  </div>
+</main>
+
+
+<script>
+/**
+ * EUC Vault Home behavior:
+ * - Keeps your existing top nav distributor buttons & search UI.
+ * - Home CTAs route to pages you can create/rename:
+ *     compare.html, range.html, search.html
+ *   (Update ROUTES if your filenames differ.)
+ */
+(function(){
+  const ROUTES = {
+    compare: "compare.html",
+    range: "range.html",
+    search: "search.html"
+  };
+
+  // Persist distributor selection for your Search page
+  const distributorButtons = document.querySelectorAll('.topbar-link[data-distributor]');
+  distributorButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const d = btn.getAttribute('data-distributor') || "";
+      localStorage.setItem("EUCVAULT_DISTRIBUTOR", d);
+
+      distributorButtons.forEach(b => b.classList.remove("topbar-link-active"));
+      btn.classList.add("topbar-link-active");
+    });
+  });
+
+  // Search routing
+  const qInput = document.getElementById("name-search-input");
+  const qSelect = document.getElementById("name-search-select");
+  const qBtn = document.getElementById("name-search-btn");
+
+  function goSearch(q){
+    const distributor = localStorage.getItem("EUCVAULT_DISTRIBUTOR") || "ewheels";
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (distributor) params.set("d", distributor);
+    window.location.href = ROUTES.search + "?" + params.toString();
+  }
+
+  if(qBtn){
+    qBtn.addEventListener("click", () => {
+      const q = (qSelect && qSelect.value) ? qSelect.value : (qInput ? qInput.value.trim() : "");
+      goSearch(q);
+    });
+  }
+  if(qInput){
+    qInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        goSearch(qInput.value.trim());
+      }
+    });
+  }
+
+  // Dropdown starter list (replace with real list later if you want)
+  if(qSelect){
+    const starter = ["Begode EX30", "Begode EXN", "InMotion V13", "InMotion V14", "Veteran Sherman-L", "LeaperKim Lynx"];
+    starter.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name; opt.textContent = name;
+      qSelect.appendChild(opt);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
