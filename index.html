@@ -306,18 +306,18 @@ body {
         <div class="topbar-links">
             <button class="topbar-link topbar-link-active"
                     type="button"
-                    data-distributor="ewheels">
-                eWheels
+                    data-distributor="compare">
+                Compare
             </button>
             <button class="topbar-link topbar-link-disabled"
                     type="button"
-                    data-distributor="alien">
-                Alien Rides
+                    data-distributor="predictRange">
+                Predict Range
             </button>
             <button class="topbar-link topbar-link-disabled"
                     type="button"
-                    data-distributor="nextgen">
-                NextGen M
+                    data-distributor="wheelSelect">
+                Choose your wheel
             </button>
         </div>
         <div class="topbar-right">
@@ -461,14 +461,31 @@ body {
   // Persist distributor selection for your Search page
   const distributorButtons = document.querySelectorAll('.topbar-link[data-distributor]');
   distributorButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const d = btn.getAttribute('data-distributor') || "";
-      localStorage.setItem("EUCVAULT_DISTRIBUTOR", d);
+  btn.addEventListener('click', () => {
+    const d = btn.getAttribute('data-distributor') || "";
 
-      distributorButtons.forEach(b => b.classList.remove("topbar-link-active"));
-      btn.classList.add("topbar-link-active");
-    });
+    // Save selection
+    localStorage.setItem("EUCVAULT_DISTRIBUTOR", d);
+
+    // Route based on button
+    switch (d) {
+      case "compare":
+        window.location.href = "euc_compare.html";
+        break;
+
+      case "predictRange":
+        window.location.href = "euc_realistic_range.html";
+        break;
+
+      case "wheelSelect":
+        window.location.href = "euc_compare.html";
+        break;
+
+      default:
+        window.location.href = "index.html";
+    }
   });
+});
 
   // Search routing
   const qInput = document.getElementById("name-search-input");
