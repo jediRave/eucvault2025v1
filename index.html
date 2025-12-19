@@ -153,7 +153,16 @@ body {
   margin: 14px 0 10px;
   font-size: clamp(2.0rem, 3.5vw, 3.1rem);
   line-height: 1.05;
+  white-space: nowrap;        /* keeps it on one line */
 }
+
+/* Allow wrapping again on smaller screens */
+@media (max-width: 768px){
+  .hero h1{
+    white-space: normal;
+  }
+}
+
 .hero p{
   margin: 0;
   max-width: 56ch;
