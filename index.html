@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -493,7 +494,8 @@ body {
   const qBtn = document.getElementById("name-search-btn");
 
   function goSearch(q){
-    const distributor = localStorage.getItem("EUCVAULT_DISTRIBUTOR") || "ewheels";
+    const raw = localStorage.getItem("EUCVAULT_DISTRIBUTOR") || "ewheels";
+    const distributor = (["ewheels","alienrides","nextgen"].includes(raw)) ? raw : "ewheels";
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (distributor) params.set("d", distributor);
@@ -515,16 +517,40 @@ body {
     });
   }
 
-  // Dropdown starter list (replace with real list later if you want)
-  if(qSelect){
+  // Dropdown list
+  // 1) Try to load the real wheel list saved by euc_compare.html (best experience)
+  // 2) Fall back to a small starter list if the user hasn't visited the compare page yet
+  if (qSelect) {
     const starter = ["Begode EX30", "Begode EXN", "InMotion V13", "InMotion V14", "Veteran Sherman-L", "LeaperKim Lynx"];
-    starter.forEach(name => {
+
+    let names = [];
+    try {
+      const saved = localStorage.getItem("EUCVAULT_WHEEL_NAMES");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) names = parsed;
+      }
+    } catch (e) {}
+
+    if (!names.length) names = starter;
+
+    // Keep the placeholder option (first one) if you have it
+    const keepFirst = qSelect.options.length ? qSelect.options[0].outerHTML : "";
+    qSelect.innerHTML = keepFirst;
+
+    // De-dupe, sort
+    names = Array.from(new Set(names.map(n => (n || "").trim()).filter(Boolean)))
+      .sort((a, b) => a.localeCompare(b));
+
+    names.forEach(name => {
       const opt = document.createElement("option");
-      opt.value = name; opt.textContent = name;
+      opt.value = name;
+      opt.textContent = name;
       qSelect.appendChild(opt);
     });
   }
 })();
+
 </script>
 
 </body>
