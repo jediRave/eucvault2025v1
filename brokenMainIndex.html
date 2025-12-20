@@ -34,7 +34,7 @@ body {
             padding: 10px 20px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             gap: 16px;
         }
 .topbar-left {
@@ -90,6 +90,20 @@ body {
             gap: 6px;
             flex-wrap: wrap;
         }
+
+/* --- Prevent topbar overlap (logo / buttons / search) --- */
+.topbar-left{ min-width: 120px; } /* reserve space for overhang logo */
+.topbar-links{
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 16px;
+}
+.topbar-right{
+  flex: 0 0 auto;
+  max-width: 520px;
+}
+
 .logo-overhang {
             position: absolute;
             left: 0;
@@ -298,11 +312,9 @@ body {
 <div class="topbar">
     <div class="topbar-inner">
         <div class="topbar-left">
-          <a href="index.html" aria-label="Go to EUC Vault Home">
-            <div class="logo-overhang">
+          <a href="index.html" aria-label="Go to EUC Vault Home" class="logo-overhang">
                 <img src="EUCVault_Logo.png" class="navbar-logo" alt="EUC Vault Logo">
-            </a>
-            </div>
+          </a>
         </div>
         <div class="topbar-links">
             <button class="topbar-link topbar-link-active"
@@ -462,31 +474,14 @@ body {
   // Persist distributor selection for your Search page
   const distributorButtons = document.querySelectorAll('.topbar-link[data-distributor]');
   distributorButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const d = btn.getAttribute('data-distributor') || "";
+    btn.addEventListener('click', () => {
+      const d = btn.getAttribute('data-distributor') || "";
+      localStorage.setItem("EUCVAULT_DISTRIBUTOR", d);
 
-    // Save selection
-    localStorage.setItem("EUCVAULT_DISTRIBUTOR", d);
-
-    // Route based on button
-    switch (d) {
-      case "compare":
-        window.location.href = "euc_compare.html";
-        break;
-
-      case "predictRange":
-        window.location.href = "euc_realistic_range.html";
-        break;
-
-      case "wheelSelect":
-        window.location.href = "euc_compare.html";
-        break;
-
-      default:
-        window.location.href = "index.html";
-    }
+      distributorButtons.forEach(b => b.classList.remove("topbar-link-active"));
+      btn.classList.add("topbar-link-active");
+    });
   });
-});
 
   // Search routing
   const qInput = document.getElementById("name-search-input");
@@ -494,8 +489,7 @@ body {
   const qBtn = document.getElementById("name-search-btn");
 
   function goSearch(q){
-    const raw = localStorage.getItem("EUCVAULT_DISTRIBUTOR") || "ewheels";
-    const distributor = (["ewheels","alienrides","nextgen"].includes(raw)) ? raw : "ewheels";
+    const distributor = localStorage.getItem("EUCVAULT_DISTRIBUTOR") || "ewheels";
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (distributor) params.set("d", distributor);
@@ -517,40 +511,16 @@ body {
     });
   }
 
-  // Dropdown list
-  // 1) Try to load the real wheel list saved by euc_compare.html (best experience)
-  // 2) Fall back to a small starter list if the user hasn't visited the compare page yet
-  if (qSelect) {
+  // Dropdown starter list (replace with real list later if you want)
+  if(qSelect){
     const starter = ["Begode EX30", "Begode EXN", "InMotion V13", "InMotion V14", "Veteran Sherman-L", "LeaperKim Lynx"];
-
-    let names = [];
-    try {
-      const saved = localStorage.getItem("EUCVAULT_WHEEL_NAMES");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) names = parsed;
-      }
-    } catch (e) {}
-
-    if (!names.length) names = starter;
-
-    // Keep the placeholder option (first one) if you have it
-    const keepFirst = qSelect.options.length ? qSelect.options[0].outerHTML : "";
-    qSelect.innerHTML = keepFirst;
-
-    // De-dupe, sort
-    names = Array.from(new Set(names.map(n => (n || "").trim()).filter(Boolean)))
-      .sort((a, b) => a.localeCompare(b));
-
-    names.forEach(name => {
+    starter.forEach(name => {
       const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
+      opt.value = name; opt.textContent = name;
       qSelect.appendChild(opt);
     });
   }
 })();
-
 </script>
 
 </body>
