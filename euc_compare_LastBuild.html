@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +9,8 @@
     <meta name="description" content="Compare electric unicycles, predict realistic range, and find the best EUC to buy — all in one place.">
     <title>EUC Vault | Compare, Predict, Ride</title>
     <style>
+        :root { --topbarH: 56px; --selectedH: 220px; }
+
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: #020617;
@@ -185,6 +188,23 @@
             background: #ea580c;   /* dimmed orange */
         }
 
+        /* Disabled state (when Compare mode is ON) */
+        #video-reviews-btn.is-disabled,
+        #video-reviews-btn:disabled {
+            background: #334155;   /* slate */
+            color: #94a3b8;
+            border-color: #1f2937;
+            cursor: not-allowed;
+            opacity: 0.75;
+            box-shadow: none;
+        }
+        #video-reviews-btn.is-disabled:hover,
+        #video-reviews-btn:disabled:hover,
+        #video-reviews-btn.is-disabled:active,
+        #video-reviews-btn:disabled:active {
+            background: #334155;
+        }
+
         #name-search-input {
             padding: 4px 8px;
             border-radius: 999px;
@@ -270,16 +290,16 @@
 
         .selected-wrapper {
             display: flex;
-            gap: 20px;
+            gap: 18px;
             align-items: stretch;
-            background: #020617;
-            border: 1px solid #1f2937;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            background: rgba(3, 7, 18, 0.70);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: 0 14px 35px rgba(0,0,0,0.45);
+            margin-top: 14px;
             position: sticky;
-            top: 56px;
+            top: var(--topbarH, 56px);
             z-index: 20;
         }
 
@@ -461,16 +481,17 @@
         /* --- COMPACT COMPARE BANNER --- */
         .compare-wrapper {
             display: none;
-            gap: 14px;
-            align-items: center;
-            background: #020617;
-            border: 1px solid #1f2937;
-            border-radius: 10px;
-            padding: 10px 14px;
-            margin-top: 10px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+            gap: 18px;
+            align-items: stretch;
+            background: rgba(3, 7, 18, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: 0 14px 35px rgba(0,0,0,0.45);
+            margin-top: 14px;
             position: sticky;
-            top: 240px;
+            /* stay directly under the (possibly compact) selected banner */
+            top: calc(var(--topbarH, 56px) + var(--selectedH, 220px) + 12px);
             z-index: 19;
         }
         .compare-wrapper .selected-image-box {
@@ -3857,7 +3878,20 @@
         setSpecBar('selcmp-maxload-bar', maxLoadLb, 350);
     }
 
-    function updateSelectedCompactState() {
+    
+    function updateStickyOffsets() {
+        const topbar = document.querySelector('.topbar');
+        const selected = document.getElementById('selected-wrapper');
+        const root = document.documentElement;
+
+        const topbarH = topbar ? topbar.offsetHeight : 56;
+        const selectedH = selected ? selected.offsetHeight : 220;
+
+        root.style.setProperty('--topbarH', topbarH + 'px');
+        root.style.setProperty('--selectedH', selectedH + 'px');
+    }
+
+function updateSelectedCompactState() {
         const activeRow =
             document.querySelector('.wheel-row.active-row') ||
             firstVisibleRowForCurrentSource();
@@ -3867,12 +3901,14 @@
             // and always show stats (even before a 2nd wheel is chosen).
             setSelectedCompareCompact(true);
             if (activeRow) updateSelectedCompareSpecsFromRow(activeRow);
+            requestAnimationFrame(updateStickyOffsets);
             return;
         }
 
         // Not in compare mode
         setSelectedCompareCompact(false);
         setSelectedCompact(!!videoPanelActive);
+        requestAnimationFrame(updateStickyOffsets);
     }
 
     function renderFeedbackList() {
@@ -3923,6 +3959,7 @@
         // NEW: shrink selected banner while Video Reviews is active
         videoPanelActive = true;
         updateSelectedCompactState();
+        requestAnimationFrame(updateStickyOffsets);
     }
 
     function hideVideoPanel() {
@@ -3940,6 +3977,7 @@
         // (If Compare mode is still enabled, keep it compact.)
         videoPanelActive = false;
         updateSelectedCompactState();
+        requestAnimationFrame(updateStickyOffsets);
     }
 
     function renderVideoResults(wheelName, items) {
@@ -4236,6 +4274,7 @@
         }
         // Ensure correct banner mode when selecting a wheel
         updateSelectedCompactState();
+        requestAnimationFrame(updateStickyOffsets);
 document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-row'));
         row.classList.add('active-row');
 
@@ -4373,6 +4412,14 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
     function setCompareMode(on) {
         compareMode = on;
 
+        // Disable Video Reviews while in Compare mode (button stays visible but greyed out)
+        const videoBtn = document.getElementById('video-reviews-btn');
+        if (videoBtn) {
+            videoBtn.disabled = !!compareMode;
+            videoBtn.classList.toggle('is-disabled', !!compareMode);
+            videoBtn.setAttribute('aria-disabled', compareMode ? 'true' : 'false');
+        }
+
         document.querySelectorAll('.compare-btn').forEach(btn => {
             if (compareMode) {
                 btn.classList.add('show');
@@ -4396,6 +4443,7 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
 
         // Make the top selected banner match the compact compare card when Compare mode is ON.
         updateSelectedCompactState();
+        requestAnimationFrame(updateStickyOffsets);
     }
 
     function applySourceFilter() {
@@ -4669,6 +4717,7 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
         if (videoReviewsBtn) {
             videoReviewsBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
+                if (compareMode || videoReviewsBtn.disabled) return;
                 const nameEl = document.getElementById('sel-name');
                 const wheelName = nameEl ? nameEl.textContent.trim() : 'Electric Unicycle';
                 openVideoReviews(wheelName);
@@ -4847,6 +4896,7 @@ const feedbackOverlay = document.getElementById('feedback-overlay');
             // Run after initial render
             setTimeout(() => { try { performNameSearch(); } catch (e) {} }, 0);
         }
+            requestAnimationFrame(updateStickyOffsets);
     });
 </script>
 
