@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -316,7 +317,46 @@
             margin-top: 4px;
         }
 
-        .selected-image-box {
+        
+
+        /* NEW: compact compare style for selected banner (used when a compare wheel is chosen) */
+        #sel-compare-specs { display: none; }
+        .selected-wrapper.is-compare {
+            gap: 14px;
+            align-items: center;
+            border-radius: 10px;
+            padding: 10px 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+        .selected-wrapper.is-compare .selected-image-box {
+            width: 110px;
+            min-height: 110px;
+            max-height: 110px;
+            border-radius: 10px;
+        }
+        .selected-wrapper.is-compare .selected-title {
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .selected-wrapper.is-compare .selected-info {
+            gap: 4px;
+        }
+        .selected-wrapper.is-compare .selected-desc {
+            display: none;
+        }
+        .selected-wrapper.is-compare .selected-specs {
+            display: none;
+        }
+        .selected-wrapper.is-compare #sel-compare-specs {
+            display: grid;
+        }
+        .selected-wrapper.is-compare .selected-actions {
+            margin-top: 4px;
+        }
+        .selected-wrapper.is-compare .view-link {
+            margin-top: 4px;
+        }
+.selected-image-box {
             width: 260px;
             min-height: 180px;
             background: radial-gradient(circle at top, #1e293b, #020617);
@@ -870,6 +910,57 @@
             <div class="selected-title" id="sel-name">Begode A1</div>
             <div class="badge" id="sel-battype-badge">Samsung 50</div>
             <div class="selected-desc" id="sel-desc">In Stock, Shipping Now! Price: just $499, less then the MTen Mini for similar specs and a larger, more stable tire What&#x27;s New: 14&quot; Wheel, weighing only ~29lb with a width less than 5 inches. Designed to be ultra-portable and beginner friendly Motor: 800W motor, sufficient for low speed riding Battery Pack: high-dischar</div>
+
+            <div class="compare-specs-grid" id="sel-compare-specs">
+                <div class="compare-spec-block">
+                    <div class="spec-label">Battery</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="selcmp-battery">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="selcmp-battery-bar"></div></div>
+                    </div>
+                </div>
+
+                <div class="compare-spec-block">
+                    <div class="spec-label">Range</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="selcmp-range">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="selcmp-range-bar"></div></div>
+                    </div>
+                </div>
+
+                <div class="compare-spec-block">
+                    <div class="spec-label">Top Speed</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="selcmp-speed">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="selcmp-speed-bar"></div></div>
+                    </div>
+                </div>
+
+                <div class="compare-spec-block">
+                    <div class="spec-label">Motor Power</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="selcmp-motor">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="selcmp-motor-bar"></div></div>
+                    </div>
+                </div>
+
+                <div class="compare-spec-block">
+                    <div class="spec-label">Weight</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="selcmp-weight">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="selcmp-weight-bar"></div></div>
+                    </div>
+                </div>
+
+                <div class="compare-spec-block">
+                    <div class="spec-label">Max Load</div>
+                    <div class="spec-main">
+                        <span class="spec-value" id="selcmp-maxload">N/A</span>
+                        <div class="spec-bar"><div class="spec-bar-fill" id="selcmp-maxload-bar"></div></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="selected-specs">
                 <div>
                     <div class="spec-label">Battery</div>
@@ -3530,6 +3621,7 @@
 
 <script>
     let compareMode = false;
+    let compareSelectionActive = false; // true when a compare wheel has been chosen
     let currentSource = "ewheels";  // "ewheels", "alien", or "nextgen"
 
     // holds the currently selected wheel data (full, for UI)
@@ -3579,10 +3671,81 @@
     }
 
     // NEW: selected banner compact toggle
+    // The selected banner should be compact whenever:
+    //   - Video Reviews panel is active, OR
+    //   - Compare mode is enabled (so the top banner matches the compact compare card).
+    let videoPanelActive = false;
+
     function setSelectedCompact(on) {
         const wrap = document.getElementById('selected-wrapper');
         if (!wrap) return;
         wrap.classList.toggle('is-compact', !!on);
+    }
+
+    function setSelectedCompareCompact(on) {
+        const wrap = document.getElementById('selected-wrapper');
+        if (!wrap) return;
+
+        // If compare compact is enabled, make sure "video compact" isn't forced.
+        if (on) {
+            wrap.classList.remove('is-compact');
+        }
+        wrap.classList.toggle('is-compare', !!on);
+    }
+
+    function updateSelectedCompareSpecsFromRow(row) {
+        if (!row) return;
+
+        const battery = row.dataset.battery || 'N/A';
+        const range = row.dataset.range || 'N/A';
+        const speed = row.dataset.speed || 'N/A';
+        const motor = row.dataset.motor || 'N/A';
+        const weight = row.dataset.weight || 'N/A';
+        const maxload = row.dataset.maxload || 'N/A';
+
+        const setText = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+
+        setText('selcmp-battery', battery);
+        setText('selcmp-range', range);
+        setText('selcmp-speed', speed);
+        setText('selcmp-motor', motor);
+        setText('selcmp-weight', weight);
+        setText('selcmp-maxload', maxload);
+
+        const batteryWh = parseBatteryWh(battery);
+        const rangeMi   = parseRangeMiles(range);
+        const speedMph  = parseSpeedMph(speed);
+        const motorW    = parseMotorW(motor);
+        const weightLb  = parseWeightLbs(weight);
+        const maxLoadLb = parseWeightLbs(maxload);
+
+        setSpecBar('selcmp-battery-bar', batteryWh, 4000);
+        setSpecBar('selcmp-range-bar',   rangeMi,   120);
+        setSpecBar('selcmp-speed-bar',   speedMph,  55);
+        setSpecBar('selcmp-motor-bar',   motorW,    4000);
+        setSpecBar('selcmp-weight-bar',  weightLb,  120);
+        setSpecBar('selcmp-maxload-bar', maxLoadLb, 350);
+    }
+
+    function updateSelectedCompactState() {
+        const activeRow =
+            document.querySelector('.wheel-row.active-row') ||
+            firstVisibleRowForCurrentSource();
+
+        if (compareMode) {
+            // In compare mode, the MAIN banner should use the same compact compare layout
+            // and always show stats (even before a 2nd wheel is chosen).
+            setSelectedCompareCompact(true);
+            if (activeRow) updateSelectedCompareSpecsFromRow(activeRow);
+            return;
+        }
+
+        // Not in compare mode
+        setSelectedCompareCompact(false);
+        setSelectedCompact(!!videoPanelActive);
     }
 
     function renderFeedbackList() {
@@ -3631,7 +3794,8 @@
         if (subEl) subEl.textContent = (wheelName ? wheelName + ' — YouTube results' : 'YouTube results');
 
         // NEW: shrink selected banner while Video Reviews is active
-        setSelectedCompact(true);
+        videoPanelActive = true;
+        updateSelectedCompactState();
     }
 
     function hideVideoPanel() {
@@ -3645,8 +3809,10 @@
         if (grid) grid.innerHTML = '';
         if (loading) loading.style.display = 'none';
 
-        // NEW: restore selected banner to full size
-        setSelectedCompact(false);
+        // NEW: restore selected banner to correct size
+        // (If Compare mode is still enabled, keep it compact.)
+        videoPanelActive = false;
+        updateSelectedCompactState();
     }
 
     function renderVideoResults(wheelName, items) {
@@ -3941,11 +4107,9 @@
         if (videoWrap && videoWrap.style.display === 'block') {
             hideVideoPanel();
         }
-
-        // NEW: ensure full-size banner when selecting a wheel
-        setSelectedCompact(false);
-
-        document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-row'));
+        // Ensure correct banner mode when selecting a wheel
+        updateSelectedCompactState();
+document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-row'));
         row.classList.add('active-row');
 
         const name = row.dataset.name || 'N/A';
@@ -3989,6 +4153,10 @@
             imgBox.appendChild(div);
         }
 
+        if (compareMode) {
+            updateSelectedCompareSpecsFromRow(row);
+        }
+
         currentWheelPayload = buildWheelPayloadFromRow(row);
         currentRangePreset  = buildRangePresetFromRow(row);
     }
@@ -4011,6 +4179,15 @@
         const wrapper = document.getElementById('compare-wrapper');
         if (!wrapper) return;
         wrapper.style.display = 'flex';
+
+        // When a compare wheel is chosen, shrink the MAIN banner to the same compact style
+        compareSelectionActive = true;
+        setSelectedCompareCompact(true);
+        const activeRow = document.querySelector('.wheel-row.active-row');
+        if (activeRow) {
+            updateSelectedCompareSpecsFromRow(activeRow);
+        }
+
 
         const name = row.dataset.name || 'N/A';
         const battery = row.dataset.battery || 'N/A';
@@ -4086,7 +4263,12 @@
         const wrapper = document.getElementById('compare-wrapper');
         if (wrapper && !compareMode) {
             wrapper.style.display = 'none';
+            compareSelectionActive = false;
+            setSelectedCompareCompact(false);
         }
+
+        // Make the top selected banner match the compact compare card when Compare mode is ON.
+        updateSelectedCompactState();
     }
 
     function applySourceFilter() {
@@ -4403,10 +4585,14 @@
                 if (wrapper) {
                     wrapper.style.display = 'none';
                 }
+
+                // Restore main banner back to normal size/spec layout
+                setCompareMode(false);
             });
         }
 
-        const feedbackOverlay = document.getElementById('feedback-overlay');
+
+const feedbackOverlay = document.getElementById('feedback-overlay');
         if (feedbackOverlay) {
             feedbackOverlay.addEventListener('click', function(e) {
                 if (e.target === feedbackOverlay) {

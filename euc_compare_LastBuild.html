@@ -1,7 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Compare electric unicycles, predict realistic range, and find the best EUC to buy — all in one place.">
     <title>EUC Vault | Compare, Predict, Ride</title>
     <style>
@@ -733,6 +735,74 @@
             border-radius: 10px;
             background: #020617;
         }
+    /* ================================
+   MOBILE LAYER – SAFE OVERRIDES
+   ================================ */
+@media (max-width: 768px) {
+
+  /* ---- TOPBAR ---- */
+  .topbar-inner {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .topbar-left {
+    justify-content: center;
+  }
+
+  .logo-overhang {
+    position: relative;
+    bottom: 0;
+  }
+
+  .navbar-logo {
+    height: 42px;
+  }
+
+  .topbar-links {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .topbar-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .topbar-search {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ---- SEARCH CONTROLS (TAP FRIENDLY) ---- */
+  #name-search-input,
+  #name-search-select,
+  #name-search-btn {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  /* ---- HERO / PAGE PADDING ---- */
+  .page,
+  .container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
     </style>
 </head>
 <body>
@@ -1118,7 +1188,7 @@
             data-motor="2800W"
             data-weight="72.8 lbs"
             data-maxload="325 LBS"
-            data-battype="Samsung 50"
+            data-battype="Samsung 50"
             data-url="https://ewheels.com/products/begode-ex-n-2700wh-battery-2800w-motor"
             data-image="http://ewheels.com/cdn/shop/products/EX.N-Front-Oblique-Right_6fe4d61c-b486-4e4b-8d40-43b65913fb1c.jpg?v=1669861957&amp;width=2048"
             data-desc="– BONUS: fitted with die-cast 13.1″ pedals &amp;amp; knobby CST-186 tire- Latest version with the black controller, improved ‘small bearings’ &amp;amp; better water resistance- Shipped with our exclusive LiTech battery packs with the upgraded P42A Molicel cells- Bonus: wrist-guards included as standard with all our Electric Un"
@@ -1133,7 +1203,7 @@
             <td>2800W</td>
             <td>72.8 lbs</td>
             <td>325 LBS</td>
-            <td>Samsung 50</td>
+            <td>Samsung 50</td>
         </tr>
         
         <tr class="wheel-row"
@@ -4416,6 +4486,7 @@
         const inputEl = document.getElementById('name-search-input');
         if (selectEl) {
             const names = collectUniqueNames();
+            try { localStorage.setItem("EUCVAULT_WHEEL_NAMES", JSON.stringify(names)); } catch (e) {}
             names.forEach(name => {
                 const opt = document.createElement('option');
                 opt.value = name;
@@ -4446,7 +4517,23 @@
         }
 
         setCompareMode(false);
+
+        // Allow homepage (and other pages) to deep-link into this page:
+        // euc_compare.html?d=ewheels&q=Begode%20EX30
+        const params = new URLSearchParams(window.location.search);
+        const urlSource = (params.get('d') || '').trim();
+        const urlQuery  = (params.get('q') || '').trim();
+        if (urlSource) currentSource = urlSource;
         setSource(currentSource || 'ewheels');
+
+        // If a query was provided, prefill and run the same search behavior
+        if (urlQuery) {
+            if (inputEl) inputEl.value = urlQuery;
+            const selectEl2 = document.getElementById('name-search-select');
+            if (selectEl2) selectEl2.value = urlQuery;
+            // Run after initial render
+            setTimeout(() => { try { performNameSearch(); } catch (e) {} }, 0);
+        }
     });
 </script>
 
