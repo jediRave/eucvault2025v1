@@ -1166,6 +1166,18 @@
             .compare-history-grid{ grid-template-columns: 1fr; }
             .ch-item{ padding: 14px; }
         }
+        .page-title-row {
+             display: flex;
+             align-items: center;
+             justify-content: space-between; /* pushes button right */
+             gap: 12px;
+             flex-wrap: wrap;
+        }
+
+        .compare-history-tab {
+             margin-left: auto; /* ensures right alignment */
+        }
+
 
 </style>
 </head>
@@ -1222,7 +1234,7 @@
 
 <div class="container">
     
-<div class="page-title-row" style="display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+<div class="page-title-row">
   <h1>EUC Vault Table</h1>
   <button id="compare-history-tab" class="compare-history-tab" type="button" title="View your compared wheels">
     Compared EUC's <span class="count" id="compare-history-count">[ 0 ]</span>

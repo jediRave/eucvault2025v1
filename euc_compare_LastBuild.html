@@ -991,7 +991,183 @@
   }
 }
 
-    </style>
+    
+        /* Compare history tab + overlay */
+        .compare-history-tab{
+            display:none;
+            margin-left: 16px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,.25);
+            background: rgba(15,23,42,.55);
+            color: #e5e7eb;
+            font-weight: 800;
+            letter-spacing: .2px;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+        }
+        .compare-history-tab:hover{ filter: brightness(1.08); }
+        .compare-history-tab:active{ transform: translateY(1px); }
+        .compare-history-tab .count{
+            display:inline-block;
+            margin-left: 8px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            background: rgba(59,130,246,.18);
+            border: 1px solid rgba(59,130,246,.35);
+            color: #93c5fd;
+            font-weight: 900;
+        }
+
+        .compare-history-overlay{
+            display:none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(2,6,23,.78);
+            backdrop-filter: blur(6px);
+        }
+        .compare-history-modal{
+            width: min(1000px, calc(100vw - 32px));
+            max-height: calc(100vh - 80px);
+            margin: 60px auto 0;
+            border-radius: 18px;
+            border: 1px solid rgba(148,163,184,.22);
+            background: radial-gradient(1200px 500px at 20% 0%, rgba(56,189,248,.12), transparent 60%),
+                        radial-gradient(900px 500px at 80% 0%, rgba(59,130,246,.10), transparent 55%),
+                        rgba(2,6,23,.90);
+            box-shadow: 0 40px 120px rgba(0,0,0,.55);
+            overflow: hidden;
+        }
+        .compare-history-header{
+            display:flex;
+            align-items:center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(148,163,184,.15);
+        }
+        .compare-history-title{
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: .3px;
+            color: #e5e7eb;
+        }
+        .compare-history-sub{
+            font-size: .85rem;
+            color: rgba(226,232,240,.70);
+            margin-top: 2px;
+        }
+        .compare-history-close{
+            border: 1px solid rgba(148,163,184,.2);
+            background: rgba(15,23,42,.55);
+            color:#e5e7eb;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-weight: 900;
+            cursor:pointer;
+        }
+        .compare-history-body{
+            padding: 14px 16px 18px;
+            overflow:auto;
+            max-height: calc(100vh - 160px);
+        }
+        .compare-history-grid{
+            display:grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .ch-item{
+            display:flex;
+            gap: 14px;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(148,163,184,.16);
+            background: rgba(15,23,42,.35);
+        }
+        .ch-img{
+            width: 84px;
+            height: 84px;
+            border-radius: 12px;
+            border: 1px solid rgba(148,163,184,.18);
+            background: rgba(2,6,23,.55);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            flex: 0 0 auto;
+        }
+        .ch-img img{ width:100%; height:100%; object-fit: cover; }
+        .ch-main{ flex:1; min-width: 0; }
+        .ch-name{
+            font-size: 1.02rem;
+            font-weight: 900;
+            color:#e5e7eb;
+            white-space: nowrap;
+            overflow:hidden;
+            text-overflow: ellipsis;
+        }
+        .ch-meta{
+            margin-top: 4px;
+            display:flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            color: rgba(226,232,240,.75);
+            font-size: .86rem;
+        }
+        .ch-badge{
+            display:inline-flex;
+            align-items:center;
+            gap: 6px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,.2);
+            background: rgba(2,6,23,.55);
+            color: rgba(226,232,240,.85);
+            font-weight: 800;
+            font-size: .78rem;
+        }
+        .ch-actions{
+            display:flex;
+            align-items:center;
+            gap: 8px;
+            flex: 0 0 auto;
+        }
+        .ch-btn{
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,.2);
+            background: rgba(15,23,42,.55);
+            color:#e5e7eb;
+            font-weight: 900;
+            cursor:pointer;
+            white-space: nowrap;
+        }
+        .ch-btn.primary{
+            border-color: rgba(34,197,94,.35);
+            background: rgba(34,197,94,.18);
+            color: #bbf7d0;
+        }
+        .ch-btn.danger{
+            border-color: rgba(239,68,68,.35);
+            background: rgba(239,68,68,.18);
+            color: #fecaca;
+        }
+        .ch-empty{
+            padding: 18px 12px;
+            border-radius: 14px;
+            border: 1px dashed rgba(148,163,184,.25);
+            color: rgba(226,232,240,.75);
+            text-align:center;
+        }
+
+        @media (min-width: 860px){
+            .compare-history-grid{ grid-template-columns: 1fr; }
+            .ch-item{ padding: 14px; }
+        }
+
+</style>
 </head>
 <body>
     
@@ -1045,7 +1221,14 @@
 </div>
 
 <div class="container">
-    <h1>EUC Vault Table</h1>
+    
+<div class="page-title-row" style="display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+  <h1>EUC Vault Table</h1>
+  <button id="compare-history-tab" class="compare-history-tab" type="button" title="View your compared wheels">
+    Compared EUC's <span class="count" id="compare-history-count">[ 0 ]</span>
+  </button>
+</div>
+
     <div class="subtitle">
         Data scraped from <span id="subtitle-source-label">eWheels – All Vehicles</span>.
         Missing or unavailable values are shown as <strong>N/A</strong>.
@@ -3770,6 +3953,10 @@
 <script>
     let compareMode = false;
     let compareSelectionActive = false; // true when a compare wheel has been chosen
+
+    // Compare History (wheels added via the table "Compare" buttons)
+    let comparedHistory = []; // [{key,name,source,image,battery,range,speed,motor,weight,maxload,battype,url}]
+    let activeCompareKey = null; // key of the wheel currently shown in the compare banner
     let currentSource = "ewheels";  // "ewheels", "alien", or "nextgen"
 
     // holds the currently selected wheel data (full, for UI)
@@ -4339,7 +4526,155 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
         el.style.width = pct + '%';
     }
 
-    function updateCompareBanner(row) {
+    
+    function compareKeyFrom(name, source) {
+        const n = (name || '').trim().toLowerCase();
+        const s = (source || '').trim().toLowerCase();
+        return s + '::' + n;
+    }
+
+    function readWheelFieldsFromRow(row) {
+        const tds = row ? row.querySelectorAll('td') : [];
+        const safe = (i) => (tds[i] ? tds[i].textContent.trim() : '');
+        // Table columns: [0]=compare btn, [1]=name, [2]=battery, [3]=range, [4]=speed, [5]=motor, [6]=weight, [7]=max load, [8]=battery type
+        const name    = safe(1);
+        const battery = safe(2);
+        const range   = safe(3);
+        const speed   = safe(4);
+        const motor   = safe(5);
+        const weight  = safe(6);
+        const maxload = safe(7);
+        const battype = safe(8);
+
+        const source = row ? (row.dataset.source || currentSource || 'ewheels') : (currentSource || 'ewheels');
+
+        let url = row ? (row.dataset.url || '') : '';
+        if (!url && name) {
+            // fallback: attempt to use the row's "View this wheel" link if present elsewhere
+            url = '';
+        }
+
+        // image (from row dataset or infer by looking up the selected card image)
+        const image = row ? (row.dataset.image || '') : '';
+
+        return { name, source, image, battery, range, speed, motor, weight, maxload, battype, url };
+    }
+
+    function syncCompareHistoryTab() {
+        const tab = document.getElementById('compare-history-tab');
+        const countEl = document.getElementById('compare-history-count');
+        if (!tab || !countEl) return;
+
+        if (!comparedHistory.length) {
+            tab.style.display = 'none';
+            countEl.textContent = '[ 0 ]';
+            return;
+        }
+
+        tab.style.display = 'inline-flex';
+        countEl.textContent = '[ ' + comparedHistory.length + ' ]';
+    }
+
+    function renderCompareHistoryOverlay() {
+        const list = document.getElementById('compare-history-list');
+        if (!list) return;
+
+        if (!comparedHistory.length) {
+            list.innerHTML = '<div class="ch-empty">No compared wheels yet.</div>';
+            return;
+        }
+
+        const rowsHtml = comparedHistory.map(item => {
+            const imgHtml = item.image
+                ? '<img src="' + item.image + '" alt="' + (item.name || 'EUC') + '"/>'
+                : '<div style="color:rgba(226,232,240,.65);font-weight:900;">No image</div>';
+
+            const srcLabel = siteLabelForSource(item.source);
+            const safe = (v) => (v && String(v).trim()) ? String(v).trim() : 'N/A';
+
+            return (
+                '<div class="ch-item" data-key="' + item.key + '">' +
+                    '<div class="ch-img">' + imgHtml + '</div>' +
+                    '<div class="ch-main">' +
+                        '<div class="ch-name">' + (item.name || 'Unknown wheel') + '</div>' +
+                        '<div class="ch-meta">' +
+                            '<span class="ch-badge">' + srcLabel + '</span>' +
+                            '<span>Battery: <b>' + safe(item.battery) + '</b></span>' +
+                            '<span>Range: <b>' + safe(item.range) + '</b></span>' +
+                            '<span>Speed: <b>' + safe(item.speed) + '</b></span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="ch-actions">' +
+                        '<button class="ch-btn primary" type="button" data-action="focus">Focus</button>' +
+                        '<button class="ch-btn danger" type="button" data-action="remove">Remove</button>' +
+                    '</div>' +
+                '</div>'
+            );
+        }).join('');
+
+        list.innerHTML = rowsHtml;
+    }
+
+    function openCompareHistory() {
+        const overlay = document.getElementById('compare-history-overlay');
+        if (!overlay) return;
+        overlay.style.display = 'block';
+        overlay.setAttribute('aria-hidden', 'false');
+        renderCompareHistoryOverlay();
+    }
+
+    function closeCompareHistory() {
+        const overlay = document.getElementById('compare-history-overlay');
+        if (!overlay) return;
+        overlay.style.display = 'none';
+        overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    function addRowToCompareHistory(row) {
+        const f = readWheelFieldsFromRow(row);
+        if (!f.name) return;
+
+        const key = compareKeyFrom(f.name, f.source);
+        const existing = comparedHistory.find(x => x.key === key);
+        if (existing) {
+            // update image or fields if they were missing
+            Object.assign(existing, f, { key });
+        } else {
+            comparedHistory.push({ key, ...f });
+        }
+
+        activeCompareKey = key;
+        syncCompareHistoryTab();
+    }
+
+    function removeCompareHistoryByKey(key) {
+        comparedHistory = comparedHistory.filter(x => x.key !== key);
+        if (activeCompareKey === key) activeCompareKey = null;
+        syncCompareHistoryTab();
+    }
+
+    function focusCompareHistoryByKey(key) {
+        const item = comparedHistory.find(x => x.key === key);
+        if (!item) return;
+
+        // Ensure compare mode is on, switch to that source, then update compare banner from its row
+        setCompareMode(true);
+        setSource(item.source);
+
+        // Find matching row by name in current source table and apply
+        const rows = document.querySelectorAll('.wheel-row');
+        for (const row of rows) {
+            if ((row.dataset.source || '') === (item.source || '') ) {
+                const tds = row.querySelectorAll('td');
+                const rowName = tds[1] ? tds[1].textContent.trim() : '';
+                if (rowName === item.name) {
+                    updateCompareBanner(row);
+                    break;
+                }
+            }
+        }
+    }
+function updateCompareBanner(row) {
         if (!compareMode) return;
 
         const wrapper = document.getElementById('compare-wrapper');
@@ -4407,10 +4742,18 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
         setSpecBar('cmp-motor-bar',   motorW,    4000);
         setSpecBar('cmp-weight-bar',  weightLb,  120);
         setSpecBar('cmp-maxload-bar', maxLoadLb, 350);
+
+        // Track this wheel in Compare History
+        addRowToCompareHistory(row);
     }
 
     function setCompareMode(on) {
         compareMode = on;
+
+        if (!compareMode) {
+            compareSelectionActive = false;
+        }
+
 
         // Disable Video Reviews while in Compare mode (button stays visible but greyed out)
         const videoBtn = document.getElementById('video-reviews-btn');
@@ -4569,7 +4912,183 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
         doc.write('tr:hover{background:#111827;}');
         doc.write('a{color:#38bdf8;}');
         doc.write('.small{font-size:0.8rem;color:#6b7280;margin-top:0.75rem;}');
-        doc.write('</style></head><body>');
+        doc.write(`
+        /* Compare history tab + overlay */
+        .compare-history-tab{
+            display:none;
+            margin-left: 16px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,.25);
+            background: rgba(15,23,42,.55);
+            color: #e5e7eb;
+            font-weight: 800;
+            letter-spacing: .2px;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+        }
+        .compare-history-tab:hover{ filter: brightness(1.08); }
+        .compare-history-tab:active{ transform: translateY(1px); }
+        .compare-history-tab .count{
+            display:inline-block;
+            margin-left: 8px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            background: rgba(59,130,246,.18);
+            border: 1px solid rgba(59,130,246,.35);
+            color: #93c5fd;
+            font-weight: 900;
+        }
+
+        .compare-history-overlay{
+            display:none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(2,6,23,.78);
+            backdrop-filter: blur(6px);
+        }
+        .compare-history-modal{
+            width: min(1000px, calc(100vw - 32px));
+            max-height: calc(100vh - 80px);
+            margin: 60px auto 0;
+            border-radius: 18px;
+            border: 1px solid rgba(148,163,184,.22);
+            background: radial-gradient(1200px 500px at 20% 0%, rgba(56,189,248,.12), transparent 60%),
+                        radial-gradient(900px 500px at 80% 0%, rgba(59,130,246,.10), transparent 55%),
+                        rgba(2,6,23,.90);
+            box-shadow: 0 40px 120px rgba(0,0,0,.55);
+            overflow: hidden;
+        }
+        .compare-history-header{
+            display:flex;
+            align-items:center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(148,163,184,.15);
+        }
+        .compare-history-title{
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: .3px;
+            color: #e5e7eb;
+        }
+        .compare-history-sub{
+            font-size: .85rem;
+            color: rgba(226,232,240,.70);
+            margin-top: 2px;
+        }
+        .compare-history-close{
+            border: 1px solid rgba(148,163,184,.2);
+            background: rgba(15,23,42,.55);
+            color:#e5e7eb;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-weight: 900;
+            cursor:pointer;
+        }
+        .compare-history-body{
+            padding: 14px 16px 18px;
+            overflow:auto;
+            max-height: calc(100vh - 160px);
+        }
+        .compare-history-grid{
+            display:grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .ch-item{
+            display:flex;
+            gap: 14px;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(148,163,184,.16);
+            background: rgba(15,23,42,.35);
+        }
+        .ch-img{
+            width: 84px;
+            height: 84px;
+            border-radius: 12px;
+            border: 1px solid rgba(148,163,184,.18);
+            background: rgba(2,6,23,.55);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            flex: 0 0 auto;
+        }
+        .ch-img img{ width:100%; height:100%; object-fit: cover; }
+        .ch-main{ flex:1; min-width: 0; }
+        .ch-name{
+            font-size: 1.02rem;
+            font-weight: 900;
+            color:#e5e7eb;
+            white-space: nowrap;
+            overflow:hidden;
+            text-overflow: ellipsis;
+        }
+        .ch-meta{
+            margin-top: 4px;
+            display:flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            color: rgba(226,232,240,.75);
+            font-size: .86rem;
+        }
+        .ch-badge{
+            display:inline-flex;
+            align-items:center;
+            gap: 6px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,.2);
+            background: rgba(2,6,23,.55);
+            color: rgba(226,232,240,.85);
+            font-weight: 800;
+            font-size: .78rem;
+        }
+        .ch-actions{
+            display:flex;
+            align-items:center;
+            gap: 8px;
+            flex: 0 0 auto;
+        }
+        .ch-btn{
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,.2);
+            background: rgba(15,23,42,.55);
+            color:#e5e7eb;
+            font-weight: 900;
+            cursor:pointer;
+            white-space: nowrap;
+        }
+        .ch-btn.primary{
+            border-color: rgba(34,197,94,.35);
+            background: rgba(34,197,94,.18);
+            color: #bbf7d0;
+        }
+        .ch-btn.danger{
+            border-color: rgba(239,68,68,.35);
+            background: rgba(239,68,68,.18);
+            color: #fecaca;
+        }
+        .ch-empty{
+            padding: 18px 12px;
+            border-radius: 14px;
+            border: 1px dashed rgba(148,163,184,.25);
+            color: rgba(226,232,240,.75);
+            text-align:center;
+        }
+
+        @media (min-width: 860px){
+            .compare-history-grid{ grid-template-columns: 1fr; }
+            .ch-item{ padding: 14px; }
+        }
+
+</style></head><body>`);
 
         doc.write('<div class="topbar"><div class="topbar-inner">');
         doc.write('<div class="topbar-left">');
@@ -4650,7 +5169,26 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
         doc.write('  renderRows(initialQueryValue);');
         doc.write('})();');
         doc.write('</' + 'script>');
-        doc.write('</body></html>');
+        doc.write(`
+<!-- COMPARE HISTORY OVERLAY -->
+<div class="compare-history-overlay" id="compare-history-overlay" aria-hidden="true">
+  <div class="compare-history-modal" role="dialog" aria-modal="true" aria-labelledby="compare-history-title">
+    <div class="compare-history-header">
+      <div>
+        <div class="compare-history-title" id="compare-history-title">Compared EUC's</div>
+        <div class="compare-history-sub">Your recently added wheels to Compare. Tap one to focus it, or remove it.</div>
+      </div>
+      <button class="compare-history-close" id="compare-history-close" type="button">Close ✕</button>
+    </div>
+    <div class="compare-history-body">
+      <div class="compare-history-grid" id="compare-history-list">
+        <div class="ch-empty">No compared wheels yet.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body></html>`);
         doc.close();
     }
 
@@ -4762,10 +5300,85 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
                     wrapper.style.display = 'none';
                 }
 
-                // Restore main banner back to normal size/spec layout
-                setCompareMode(false);
+                // Remove the active compared wheel from history (if any)
+                if (activeCompareKey) {
+                    removeCompareHistoryByKey(activeCompareKey);
+                }
+
+                // If no history left, fully exit compare mode and restore defaults
+                if (!comparedHistory.length) {
+                    compareSelectionActive = false;
+                    setCompareMode(false);
+                } else {
+                    // Exit compare mode visually, but keep history available
+                    compareSelectionActive = false;
+                    setCompareMode(false);
+                }
             });
         }
+        // Compare History tab + overlay wiring
+        const chTab = document.getElementById('compare-history-tab');
+        if (chTab) {
+            chTab.addEventListener('click', function(e){
+                e.stopPropagation();
+                if (!comparedHistory.length) return;
+                openCompareHistory();
+            });
+        }
+
+        const chClose = document.getElementById('compare-history-close');
+        if (chClose) {
+            chClose.addEventListener('click', function(e){
+                e.stopPropagation();
+                closeCompareHistory();
+            });
+        }
+
+        const chOverlay = document.getElementById('compare-history-overlay');
+        if (chOverlay) {
+            chOverlay.addEventListener('click', function(e){
+                // click outside modal closes
+                if (e.target === chOverlay) closeCompareHistory();
+            });
+        }
+
+        const chList = document.getElementById('compare-history-list');
+        if (chList) {
+            chList.addEventListener('click', function(e){
+                const btn = e.target.closest('button');
+                const itemEl = e.target.closest('.ch-item');
+                if (!btn || !itemEl) return;
+
+                const key = itemEl.getAttribute('data-key') || '';
+                const action = btn.getAttribute('data-action');
+
+                if (action === 'remove') {
+                    removeCompareHistoryByKey(key);
+
+                    // If nothing left, close overlay and exit compare mode cleanly
+                    if (!comparedHistory.length) {
+                        closeCompareHistory();
+                        const wrapper = document.getElementById('compare-wrapper');
+                        if (wrapper) wrapper.style.display = 'none';
+                        compareSelectionActive = false;
+                        setCompareMode(false);
+                    } else {
+                        renderCompareHistoryOverlay();
+                    }
+                    return;
+                }
+
+                if (action === 'focus') {
+                    closeCompareHistory();
+                    focusCompareHistoryByKey(key);
+                    return;
+                }
+            });
+        }
+
+        // Initialize tab state
+        syncCompareHistoryTab();
+
 
 
 const feedbackOverlay = document.getElementById('feedback-overlay');
@@ -4899,6 +5512,25 @@ const feedbackOverlay = document.getElementById('feedback-overlay');
             requestAnimationFrame(updateStickyOffsets);
     });
 </script>
+
+
+<!-- COMPARE HISTORY OVERLAY -->
+<div class="compare-history-overlay" id="compare-history-overlay" aria-hidden="true">
+  <div class="compare-history-modal" role="dialog" aria-modal="true" aria-labelledby="compare-history-title">
+    <div class="compare-history-header">
+      <div>
+        <div class="compare-history-title" id="compare-history-title">Compared EUC's</div>
+        <div class="compare-history-sub">Your recently added wheels to Compare. Tap one to focus it, or remove it.</div>
+      </div>
+      <button class="compare-history-close" id="compare-history-close" type="button">Close ✕</button>
+    </div>
+    <div class="compare-history-body">
+      <div class="compare-history-grid" id="compare-history-list">
+        <div class="ch-empty">No compared wheels yet.</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
