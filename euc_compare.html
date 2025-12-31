@@ -494,6 +494,23 @@
             top: calc(var(--topbarH, 56px) + var(--selectedH, 220px) + 12px);
             z-index: 19;
         }
+
+        /* --- STOP BACKGROUND SCROLL BLEED THROUGH --- */
+        .selected-wrapper,
+        .compare-wrapper {
+            isolation: isolate;
+        }
+
+        .selected-wrapper::before,
+        .compare-wrapper::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(3, 7, 18, 0.92);
+            z-index: -1;
+        }
+
         .compare-wrapper .selected-image-box {
             width: 110px;
             min-height: 110px;
