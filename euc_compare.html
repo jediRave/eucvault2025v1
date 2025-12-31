@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -286,6 +287,35 @@
         }
         a {
             color: #38bdf8;
+        }
+
+
+        /* View wheel CTA (inline with banner buttons) */
+        .view-wheel-btn{
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(56,189,248,.45);
+            background: rgba(56,189,248,.20);
+            color: #e0f2fe;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(56,189,248,.22);
+            transition: transform .15s ease, filter .15s ease, box-shadow .15s ease, background .15s ease;
+            white-space: nowrap;
+        }
+        .view-wheel-btn:hover{
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+            background: rgba(56,189,248,.28);
+            box-shadow: 0 0 26px rgba(56,189,248,.35);
+        }
+        .view-wheel-btn:active{
+            transform: translateY(0px);
         }
 
         .selected-wrapper {
@@ -1362,16 +1392,12 @@
                 </button>
 
                 <button id="feedback-btn" type="button">
-                    What do others say about this wheel?
+                    Riders Feedback
                 </button>
-            </div>
+                <a href="https://ewheels.com/products/begode-a1-180wh-battery-800w-motor" target="_blank" id="sel-url" class="view-wheel-btn">View this wheel →</a>
 
-            <div class="view-link">
-                <a href="https://ewheels.com/products/begode-a1-180wh-battery-800w-motor" target="_blank" id="sel-url">
-                    View this wheel →
-                </a>
             </div>
-        </div>
+</div>
     </div>
 
     <!-- COMPACT comparison popup banner (starts hidden) -->
@@ -1430,13 +1456,11 @@
                 <button class="compare-banner-btn" type="button">Compare</button>
                 <button class="compare-clear-btn" type="button">Remove</button>
                 <button class="cmp-feedback-btn" type="button">
-                    What do others say about this wheel?
+                    Riders Feedback
                 </button>
+                <a href="#" target="_blank" id="cmp-url" class="view-wheel-btn">View this wheel →</a>
             </div>
-            <div class="view-link">
-                <a href="#" target="_blank" id="cmp-url">View this wheel →</a>
-            </div>
-        </div>
+</div>
     </div>
 
     <!-- Video results -->
