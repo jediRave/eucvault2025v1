@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,6 +20,77 @@ body {
   overflow-x: hidden;   /* keep sideways scroll from happening */
   overflow-y: auto;     /* allow normal vertical scrolling */
         }    
+
+/* Match euc_compare.html top search width */
+.topbar-search {
+  max-width: 420px;
+  flex: 0 0 auto;
+}
+
+/* Keep input + dropdown + button on ONE line */
+.topbar-search {
+  flex-wrap: nowrap;
+}
+
+/* Optional: prevent the whole right side from wrapping too */
+.topbar-right {
+  flex-wrap: nowrap;
+}
+
+
+/* Tighten search bar on index.html */
+
+/* Match euc_compare.html search styling exactly */
+#name-search-input {
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid #1f2937;
+    background: #020617;
+    color: #e5e7eb;
+    font-size: 0.8rem;
+    width: 150px;
+}
+
+#name-search-select {
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid #1f2937;
+    background: #020617;
+    color: #e5e7eb;
+    font-size: 0.8rem;
+    width: 180px;
+}
+
+#name-search-btn {
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid #1f2937;
+    background: #22c55e;
+    color: #0b1120;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#name-search-btn:hover {
+    background: #16a34a;
+}
+
+
+/*
+#name-search-input {
+  width: 150px;
+}
+
+#name-search-select {
+  width: 180px;
+}
+
+#name-search-btn {
+  padding: 5px 12px;
+}
+*/
 
 .topbar {
             position: sticky;
@@ -88,7 +160,7 @@ body {
             display: flex;
             align-items: center;
             gap: 6px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
 .logo-overhang {
             position: absolute;
@@ -104,10 +176,10 @@ body {
 .page{
   max-width: 1200px;
   margin: 0 auto;
-  padding: 12px 18px 80px;
+  padding: 6px 18px 80px;
 }
 .hero{
-  margin-top: 30px;
+  margin-top: 12px;
   border: 1px solid #1f2937;
   border-radius: 22px;
   overflow: hidden;
@@ -151,8 +223,8 @@ body {
   width: fit-content;
 }
 .hero h1{
-  margin: 14px 0 10px;
-  font-size: clamp(2.0rem, 3.5vw, 3.1rem);
+  margin: 6px 0 10px;
+  font-size: clamp(1.85rem, 3.0vw, 2.75rem);
   line-height: 1.05;
   white-space: nowrap;        /* keeps it on one line */
 }
@@ -289,8 +361,69 @@ body {
   .ctas{ grid-template-columns: 1fr; }
   .grid{ grid-template-columns: 1fr; }
   .steps{ grid-template-columns: 1fr; }
-  .hero{ margin-top: 64px; }
+  .hero{ margin-top: 12px; }
 }
+
+/* Mobile formatting for the site   */
+/* ================================
+   MOBILE LAYER – SAFE OVERRIDES
+   ================================ */
+@media (max-width: 768px) {
+
+  /* ---- TOPBAR ---- */
+  .topbar-inner {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .topbar-left {
+    justify-content: center;
+  }
+
+  .logo-overhang {
+    position: relative;
+    bottom: 0;
+  }
+
+  .navbar-logo {
+    height: 42px;
+  }
+
+  .topbar-links {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .topbar-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .topbar-search {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ---- SEARCH CONTROLS (TAP FRIENDLY) ---- */
+  #name-search-input,
+  #name-search-select,
+  #name-search-btn {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  /* ---- HERO / PAGE PADDING ---- */
+  .page,
+  .container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
 
   </style>
 </head>
@@ -337,7 +470,7 @@ body {
   <section class="hero" aria-label="Welcome">
     <div class="hero-inner">
       <div class="hero-copy">
-        <div class="kicker">⚡ EUC Vault • Tools for riders</div>
+        <!-- <div class="kicker">⚡ EUC Vault • Tools for riders</div> -->
         <h1>Compare. Predict. Choose Smarter.</h1>
         <p>Compare electric unicycles, predict real-world range, and choose the right wheel with confidence.</p>
       </div>
