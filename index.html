@@ -3,6 +3,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -474,7 +475,84 @@ body {
 }
 
 
-  </style>
+  
+/* ===== Suggested Beginner EUC List ===== */
+.beginner-grid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.beginner-card{
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(2,6,23,0.7);
+  text-decoration: none;
+  color: #e5e7eb;
+  display: block;
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.22);
+  min-height: 112px;
+}
+.beginner-card:hover{
+  transform: translateY(-2px);
+  border-color: rgba(56,189,248,0.65);
+  box-shadow: 0 16px 30px rgba(0,0,0,0.30);
+}
+.beginner-card .bn-title{
+  font-weight: 900;
+  font-size: 0.98rem;
+  line-height: 1.15;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.beginner-card .bn-brand{
+  font-size: .78rem;
+  color: rgba(229,231,235,0.75);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.beginner-card .bn-meta{
+  color: rgba(229,231,235,0.75);
+  font-size: .86rem;
+  line-height: 1.35;
+}
+.beginner-card .bn-tags{
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.beginner-card .tag{
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: rgba(15,23,42,0.55);
+  font-size: .74rem;
+  color: rgba(229,231,235,0.80);
+}
+.beginner-card .bn-cta{
+  margin-top: 10px;
+  font-size: .78rem;
+  color: rgba(56,189,248,0.95);
+  font-weight: 800;
+}
+
+/* Responsive */
+@media (max-width: 980px){
+  .beginner-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px){
+  .beginner-grid{ grid-template-columns: 1fr; }
+}
+
+</style>
 </head>
 <body>
 <div class="topbar">
@@ -598,6 +676,101 @@ body {
       </div>
     </div>
   </section>
+
+  <section class="section" aria-label="Beginner picks">
+    <h2>Suggested Beginner EUC List</h2>
+    <p style="margin:0; color: var(--text-muted); font-size:.92rem; line-height:1.45;">
+      A quick starter lineup to get you exploring. Click any wheel to jump into the compare page.
+    </p>
+
+    <div class="beginner-grid" aria-label="Beginner EUC grid">
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare InMotion V8F">
+        <div class="bn-title"><span>InMotion V8F</span><span class="bn-brand">InMotion</span></div>
+        <div class="bn-meta">Smooth learning curve • Balanced commuter feel</div>
+        <div class="bn-tags"><span class="tag">Beginner-friendly</span><span class="tag">Light</span><span class="tag">City</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare InMotion V10F">
+        <div class="bn-title"><span>InMotion V10F</span><span class="bn-brand">InMotion</span></div>
+        <div class="bn-meta">More range + comfort without feeling huge</div>
+        <div class="bn-tags"><span class="tag">Beginner+</span><span class="tag">Comfort</span><span class="tag">Commuter</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare King Song 16X">
+        <div class="bn-title"><span>King Song 16X</span><span class="bn-brand">King Song</span></div>
+        <div class="bn-meta">Stable platform • Great all-rounder feel</div>
+        <div class="bn-tags"><span class="tag">Stable</span><span class="tag">All-round</span><span class="tag">16&quot;</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare King Song 18XL">
+        <div class="bn-title"><span>King Song 18XL</span><span class="bn-brand">King Song</span></div>
+        <div class="bn-meta">Comfortable cruiser • Confidence-inspiring ride</div>
+        <div class="bn-tags"><span class="tag">Cruiser</span><span class="tag">Comfort</span><span class="tag">18&quot;</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare Begode A2">
+        <div class="bn-title"><span>Begode A2</span><span class="bn-brand">Begode</span></div>
+        <div class="bn-meta">Compact trainer • Great for tight spaces</div>
+        <div class="bn-tags"><span class="tag">Compact</span><span class="tag">Trainer</span><span class="tag">Easy</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare Begode T4">
+        <div class="bn-title"><span>Begode T4</span><span class="bn-brand">Begode</span></div>
+        <div class="bn-meta">First suspension feel • Friendly power step-up</div>
+        <div class="bn-tags"><span class="tag">Suspension</span><span class="tag">Beginner+</span><span class="tag">Versatile</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare InMotion V11">
+        <div class="bn-title"><span>InMotion V11</span><span class="bn-brand">InMotion</span></div>
+        <div class="bn-meta">Classic suspension commuter • Smooth &amp; forgiving</div>
+        <div class="bn-tags"><span class="tag">Suspension</span><span class="tag">Forgiving</span><span class="tag">Commuter</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare InMotion V12">
+        <div class="bn-title"><span>InMotion V12</span><span class="bn-brand">InMotion</span></div>
+        <div class="bn-meta">Sporty commuter • Extra speed headroom</div>
+        <div class="bn-tags"><span class="tag">Sporty</span><span class="tag">Range</span><span class="tag">Street</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare King Song S19">
+        <div class="bn-title"><span>King Song S19</span><span class="bn-brand">King Song</span></div>
+        <div class="bn-meta">Suspension starter • Comfortable daily rides</div>
+        <div class="bn-tags"><span class="tag">Suspension</span><span class="tag">Comfort</span><span class="tag">Daily</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare LeaperKim Patton">
+        <div class="bn-title"><span>LeaperKim Patton</span><span class="bn-brand">LeaperKim</span></div>
+        <div class="bn-meta">Premium build • Controlled torque &amp; stability</div>
+        <div class="bn-tags"><span class="tag">Premium</span><span class="tag">Stable</span><span class="tag">Suspension</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare Sherman Mini">
+        <div class="bn-title"><span>Sherman Mini</span><span class="bn-brand">Veteran</span></div>
+        <div class="bn-meta">Small Sherman vibe • Practical, punchy commuter</div>
+        <div class="bn-tags"><span class="tag">Commuter</span><span class="tag">Punchy</span><span class="tag">Compact</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+
+      <a class="beginner-card" href="euc_compare.html" aria-label="Compare Begode Falcon">
+        <div class="bn-title"><span>Begode Falcon</span><span class="bn-brand">Begode</span></div>
+        <div class="bn-meta">Light adventure vibe • Easy to live with</div>
+        <div class="bn-tags"><span class="tag">Light</span><span class="tag">Adventure</span><span class="tag">Fun</span></div>
+        <div class="bn-cta">Compare →</div>
+      </a>
+    </div>
+  </section>
+
+
 
   <section class="section" aria-label="Feedback">
     <h2>Help shape EUC Vault</h2>
