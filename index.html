@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -269,6 +270,20 @@ body {
   display:flex; align-items:center; justify-content:space-between; gap: 10px;
   font-weight: 900;
 }
+
+.cta .title-left{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.cta .cta-icon{
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: inline-block;
+  object-fit: contain;
+}
 .cta .desc{
   margin-top: 6px;
   color: var(--text-muted);
@@ -515,17 +530,17 @@ body {
 
       <div class="ctas" role="navigation" aria-label="Primary actions">
         <a class="cta accent" href="euc_compare.html">
-          <div class="title"><span>⚖️ Compare Wheels</span><span>→</span></div>
+          <div class="title"><span class="title-left"><img class="cta-icon" src="cta_icon_compare.png" alt="" aria-hidden="true"><span>Compare Wheels</span></span><span>→</span></div>
           <div class="desc">Pick two+ wheels and see the differences instantly.</div>
         </a>
 
         <a class="cta primary" href="euc_realistic_range.html">
-          <div class="title"><span>📊 Predict Your Range</span><span>→</span></div>
+          <div class="title"><span class="title-left"><img class="cta-icon" src="cta_icon_predict.png" alt="" aria-hidden="true"><span>Predict Your Range</span></span><span>→</span></div>
           <div class="desc">Estimate realistic range using weight, terrain, speed, and temperature.</div>
         </a>
 
         <a class="cta warn" href="euc_compare.html">
-          <div class="title"><span>🏪 Compare Distributors</span><span>→</span></div>
+          <div class="title"><span class="title-left"><img class="cta-icon" src="cta_icon_distributors.png" alt="" aria-hidden="true"><span>Compare Distributors</span></span><span>→</span></div>
           <div class="desc">Browse listings by distributor and find the best place to buy.</div>
         </a>
 
