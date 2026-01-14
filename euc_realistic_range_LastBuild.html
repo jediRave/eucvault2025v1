@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>EUC Realistic Range & Speed Estimator</title>
+  <meta name="description" content="Compare electric unicycles, predict realistic range, and find the best EUC to buy — all in one place.">
+  <title>EUC Vault | Compare, Predict, Ride</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -34,6 +35,23 @@
       min-height: 100vh;
       padding: 16px 16px 24px 16px;
     }
+
+    /* Feedback button style block */
+        .feedback-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #35e0ff;
+            color: #000;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            box-shadow: 0 0 18px rgba(53, 224, 255, 0.45);
+            z-index: 9999;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
 
     /* ===== Top menu bar (same style as main page) ===== */
     .topbar {
@@ -75,7 +93,7 @@
     }
 
     .navbar-logo {
-      height: 40px;
+      height: 64px;
       width: auto;
       display: block;
     }
@@ -571,18 +589,90 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* ================================
+   MOBILE LAYER – SAFE OVERRIDES
+   ================================ */
+@media (max-width: 768px) {
+
+  /* ---- TOPBAR ---- */
+  .topbar-inner {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .topbar-left {
+    justify-content: center;
+  }
+
+  .logo-overhang {
+    position: relative;
+    bottom: 0;
+  }
+
+  .navbar-logo {
+    height: 42px;
+  }
+
+  .topbar-links {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .topbar-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .topbar-search {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ---- SEARCH CONTROLS (TAP FRIENDLY) ---- */
+  #name-search-input,
+  #name-search-select,
+  #name-search-btn {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  /* ---- HERO / PAGE PADDING ---- */
+  .page,
+  .container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
   </style>
 </head>
 <body>
+
+  <!-- Feedback button-->
+  <a
+  href="https://forms.gle/466o1D99f2qcvQ9v7"
+  target="_blank"
+  rel="noopener"
+  class="feedback-btn"
+>
+  💬 Feedback
+</a>
 
   <!-- Top menu bar (navigation + search back to main EUC Vault page) -->
   <div class="topbar">
     <div class="topbar-inner">
       <div class="topbar-left">
         <div class="logo-overhang">
+          <a href="index.html" aria-label="Go to EUC Vault Home">
           <img src="EUCVault_Logo.png" class="navbar-logo" alt="EUC Vault Logo">
+        </a>
         </div>
-        <div class="topbar-title">Range Monitor</div>
+        <div class="topbar-title"></div>
       </div>
       <div class="topbar-links">
         <button class="topbar-link" type="button" id="topbar-home-btn">
