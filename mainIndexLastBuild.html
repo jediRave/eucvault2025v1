@@ -4,6 +4,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -552,6 +553,38 @@ body {
   .beginner-grid{ grid-template-columns: 1fr; }
 }
 
+
+/* ===== How it works: collapse / expand ===== */
+.how-header{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.collapse-btn{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: rgba(2,6,23,0.7);
+  color: #e5e7eb;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.collapse-btn:hover{ border-color: rgba(56,189,248,0.65); }
+.collapse-btn .chev{
+  transition: transform .15s ease;
+  display:inline-block;
+}
+/* default collapsed */
+.how-collapsible .steps{ display:none; }
+.how-collapsible.is-open .steps{ display:grid; }
+.how-collapsible.is-open .collapse-btn .chev{ transform: rotate(180deg); }
+
 </style>
 </head>
 <body>
@@ -653,9 +686,16 @@ body {
     </div>
   </section>
 
-  <section class="section" aria-label="How it works">
-    <h2>How it works</h2>
-    <div class="steps">
+  <section class="section how-collapsible" aria-label="How it works" id="how-it-works">
+    <!-- Collapsible: default collapsed -->
+    <div class="how-header">
+      <h2 style="margin:0;">How it works</h2>
+      <button class="collapse-btn" type="button" id="howToggle" aria-expanded="false" aria-controls="howSteps">
+        <span>Show steps</span>
+        <span class="chev">▾</span>
+      </button>
+    </div>
+    <div class="steps" id="howSteps">
       <div class="step">
         <div class="n">01 • Pick a path</div>
         <p style="margin:6px 0 0; color: var(--text-muted); font-size:.92rem; line-height:1.45;">
@@ -905,6 +945,22 @@ body {
     });
   }
 })();
+
+
+  // How it works collapse/expand (default collapsed)
+  const howSection = document.getElementById("how-it-works");
+  const howToggle = document.getElementById("howToggle");
+  const howSteps = document.getElementById("howSteps");
+  if (howSection && howToggle && howSteps){
+    howToggle.addEventListener("click", () => {
+      const isOpen = howSection.classList.toggle("is-open");
+      howToggle.setAttribute("aria-expanded", String(isOpen));
+      const label = howToggle.querySelector("span");
+      if (label) label.textContent = isOpen ? "Hide steps" : "Show steps";
+      // smooth scroll into view when expanding
+      if (isOpen) howSection.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+  }
 
 </script>
 

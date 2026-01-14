@@ -2,6 +2,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4141,6 +4142,91 @@ function updateSelectedCompactState() {
             // and always show stats (even before a 2nd wheel is chosen).
             setSelectedCompareCompact(true);
             if (activeRow) updateSelectedCompareSpecsFromRow(activeRow);
+
+        // Optional: deep-link from homepage suggested wheels:
+        // euc_compare.html?wheel=Begode%20EX30  (or ?w=...)
+        const urlWheel  = (params.get('wheel') || params.get('w') || '').trim();
+
+        function __normWheelName(s){
+            return (s||"")
+                .toLowerCase()
+                .replace(/\s+/g," ")
+                .replace(/[^a-z0-9\s.+-]/g,"")
+                .trim();
+        }
+
+        function __scoreWheelName(candidate, target){
+            if (!candidate || !target) return -1;
+            if (candidate === target) return 100;
+            if (candidate.startsWith(target)) return 80;
+            if (target.startsWith(candidate)) return 70;
+            if (candidate.includes(target)) return 60;
+            if (target.includes(candidate)) return 50;
+            return -1;
+        }
+
+        function __autoSelectWheelByName(wheelName){
+            const raw = (wheelName||"").trim();
+            if (!raw) return;
+
+            const target = __normWheelName(raw);
+            if (!target) return;
+
+            // First pass: pick the best match across ALL sources
+            const allRows = Array.from(document.querySelectorAll(".wheel-row"));
+            if (!allRows.length) return;
+
+            let best = { row: null, score: -1, src: "" };
+
+            for (const row of allRows){
+                const tds = row.querySelectorAll("td");
+                const rowName = (row.dataset.name || (tds[1] ? tds[1].textContent : "") || "").trim();
+                const cand = __normWheelName(rowName);
+                const score = __scoreWheelName(cand, target);
+                if (score > best.score){
+                    best = { row, score, src: (row.dataset.source || "").trim() };
+                }
+            }
+
+            // Require at least a reasonable match to avoid selecting the wrong wheel
+            if (!best.row || best.score < 50) return;
+
+            if (best.src && best.src !== currentSource) {
+                setSource(best.src);
+            }
+
+            // Second pass after source switch: select best match in CURRENT source
+            setTimeout(() => {
+                try {
+                    const rows = Array.from(document.querySelectorAll(".wheel-row"))
+                        .filter(r => (r.dataset.source || "") === currentSource);
+
+                    let bestRow = null;
+                    let bestScore = -1;
+
+                    for (const row of rows){
+                        const tds = row.querySelectorAll("td");
+                        const rowName = (row.dataset.name || (tds[1] ? tds[1].textContent : "") || "").trim();
+                        const cand = __normWheelName(rowName);
+                        const score = __scoreWheelName(cand, target);
+                        if (score > bestScore){
+                            bestScore = score;
+                            bestRow = row;
+                        }
+                    }
+
+                    if (!bestRow || bestScore < 50) return;
+
+                    updateSelected(bestRow);
+                    bestRow.scrollIntoView({ behavior: "smooth", block: "center" });
+                } catch (e) {}
+            }, 0);
+        }
+
+        if (urlWheel) {
+            __autoSelectWheelByName(urlWheel);
+        }
+
             requestAnimationFrame(updateStickyOffsets);
             return;
         }
