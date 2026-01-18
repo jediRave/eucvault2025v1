@@ -4,6 +4,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -287,6 +288,92 @@
             margin: 0 auto;
             padding: 20px;
         }
+
+        /* ---------------- EUC LIST DRAWER (BOTTOM SHEET) ---------------- */
+        .euc-drawer-fab{
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 14px;
+            z-index: 60;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            background: rgba(3, 7, 18, 0.78);
+            color: #e5e7eb;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+            backdrop-filter: blur(10px);
+        }
+        .euc-drawer-fab:hover{ filter: brightness(1.06); }
+        .euc-drawer-fab-caret{ opacity: .85; font-size: .9rem; }
+
+        .euc-drawer-overlay{
+            position: fixed;
+            inset: 0;
+            z-index: 80;
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+            background: rgba(0,0,0,0.55);
+        }
+        .euc-drawer-overlay.open{ display: flex; }
+
+        .euc-drawer{
+            width: min(1200px, calc(100vw - 24px));
+            max-height: 78vh;
+            border-radius: 18px 18px 0 0;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(3, 7, 18, 0.96);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.65);
+            overflow: hidden;
+            transform: translateY(28px);
+            opacity: 0;
+            transition: transform .18s ease, opacity .18s ease;
+        }
+        .euc-drawer-overlay.open .euc-drawer{
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .euc-drawer-header{
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        }
+        .euc-drawer-title{ font-weight: 900; color: #e0f2fe; }
+        .euc-drawer-sub{ font-size: .78rem; color: #94a3b8; font-weight: 600; margin-top: 4px; }
+        .euc-drawer-close{
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(2,6,23,0.65);
+            color: #e5e7eb;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 900;
+        }
+        .euc-drawer-close:hover{ filter: brightness(1.08); }
+        .euc-drawer-body{
+            padding: 0 12px 12px;
+            overflow: auto;
+            max-height: calc(78vh - 64px);
+        }
+
+        /* table wrapper is now inside the drawer */
+        #specs-table-wrap{ margin-top: 0; }
+        #specs-table-wrap table{ margin-top: 0; }
+
+        /* give the page a little breathing room so the floating bar doesn't cover content */
+        body{ padding-bottom: 76px; }
+
         a {
             color: #38bdf8;
         }
@@ -330,9 +417,51 @@
             padding: 14px;
             box-shadow: 0 14px 35px rgba(0,0,0,0.45);
             margin-top: 14px;
-            position: sticky;
-            top: var(--topbarH, 56px);
+            /* Drawer layout: keep the selected EUC card in-flow at the top
+               (no sticky behavior that can leave a big empty spacer). */
+            position: relative;
+            top: auto;
             z-index: 20;
+        }
+
+        /* Compared EUCs (stack of full cards shown under the selected EUC) */
+        .compare-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 14px;
+        }
+        .compare-card {
+            display: flex;
+            gap: 18px;
+            align-items: stretch;
+            background: rgba(3, 7, 18, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: 0 14px 35px rgba(0,0,0,0.45);
+            position: relative;
+        }
+        .compare-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(3, 7, 18, 0.92);
+            z-index: -1;
+        }
+        .compare-card .selected-image-box {
+            width: 110px;
+            min-height: 110px;
+            max-height: 110px;
+            border-radius: 10px;
+        }
+        .compare-card .selected-title {
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        .compare-card .selected-info {
+            gap: 4px;
         }
 
         /* NEW: compact mode for selected banner (used when Video Reviews is active) */
@@ -610,7 +739,59 @@
             cursor: pointer;
         }
 
-        .feedback-modal-overlay {
+        
+        /* --- COMPARE STACK (MULTI-WHEEL) --- */
+        .compare-stack{
+            margin-top: 10px;
+            display: none;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 6px 2px;
+            scroll-snap-type: x mandatory;
+        }
+        .compare-stack::-webkit-scrollbar{ height: 10px; }
+        .compare-stack::-webkit-scrollbar-thumb{ background: rgba(148,163,184,.22); border-radius: 999px; }
+        .compare-chip{
+            scroll-snap-align: start;
+            flex: 0 0 auto;
+            width: 280px;
+            border-radius: 14px;
+            border: 1px solid rgba(148,163,184,.16);
+            background: rgba(15,23,42,.35);
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .compare-chip:hover{ filter: brightness(1.06); }
+        .compare-chip-img{
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            border: 1px solid rgba(148,163,184,.18);
+            background: rgba(2,6,23,.55);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            flex: 0 0 auto;
+        }
+        .compare-chip-img img{ width:100%; height:100%; object-fit: cover; }
+        .compare-chip-main{ flex:1; min-width: 0; }
+        .compare-chip-name{ font-weight: 900; color:#e5e7eb; white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
+        .compare-chip-meta{ margin-top: 4px; font-size: .8rem; color: rgba(226,232,240,.70); display:flex; flex-wrap: wrap; gap: 6px 10px; }
+        .compare-chip-actions{ display:flex; align-items:center; gap: 8px; }
+        .compare-chip-remove{
+            border: 1px solid rgba(239,68,68,.35);
+            background: rgba(239,68,68,.12);
+            color: #fecaca;
+            border-radius: 10px;
+            padding: 6px 8px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .compare-chip-remove:hover{ filter: brightness(1.08); }
+.feedback-modal-overlay {
             position: fixed;
             inset: 0;
             background: rgba(15,23,42,0.85);
@@ -1279,7 +1460,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <div class="container">
     
@@ -1402,6 +1582,9 @@
 </div>
     </div>
 
+    <!-- Compared EUCs (full cards appended under the selected EUC) -->
+    <div id="compare-cards" class="compare-cards"></div>
+
     <!-- COMPACT comparison popup banner (starts hidden) -->
     <div class="compare-wrapper" id="compare-wrapper">
         <div class="selected-image-box" id="cmp-image-box"></div>
@@ -1465,6 +1648,9 @@
 </div>
     </div>
 
+    <!-- Compared wheels stack (shows all wheels added via Compare) -->
+    <div class="compare-stack" id="compare-stack" style="display:none;"></div>
+
     <!-- Video results -->
     <div class="video-results-wrap" id="video-results-wrap">
         <div class="video-results-header">
@@ -1483,7 +1669,25 @@
         <div class="video-grid" id="video-grid"></div>
     </div>
 
-    <!-- Specs table wrapper -->
+    <!-- Floating bottom bar that opens the EUC list drawer -->
+    <button class="euc-drawer-fab" id="euc-drawer-fab" type="button" aria-haspopup="dialog" aria-controls="euc-drawer-overlay">
+        Browse EUC List
+        <span class="euc-drawer-fab-caret">▲</span>
+    </button>
+
+    <!-- EUC list drawer overlay (click outside / Close to dismiss) -->
+    <div class="euc-drawer-overlay" id="euc-drawer-overlay" aria-hidden="true">
+        <div class="euc-drawer" id="euc-drawer" role="dialog" aria-modal="true" aria-label="EUC list">
+            <div class="euc-drawer-header">
+                <div class="euc-drawer-title">
+                    EUC List
+                    <div class="euc-drawer-sub">Tap a row to select a wheel. In Compare mode, use the orange Compare button.</div>
+                </div>
+                <button class="euc-drawer-close" id="euc-drawer-close" type="button" aria-label="Close">✕</button>
+            </div>
+            <div class="euc-drawer-body">
+
+    <!-- Specs table wrapper (now inside the drawer) -->
     <div id="specs-table-wrap">
         <table>
             <thead>
@@ -3976,7 +4180,11 @@
         <p class="small">
             NOTE: This is a best-effort scraper. Always double-check critical specs on the original product pages before buying.
         </p>
-    </div>
+    </div> <!-- /#specs-table-wrap -->
+
+            </div> <!-- /.euc-drawer-body -->
+        </div> <!-- /.euc-drawer -->
+    </div> <!-- /.euc-drawer-overlay -->
 </div>
 
 <div class="feedback-modal-overlay" id="feedback-overlay">
@@ -4185,15 +4393,49 @@ function updateSelectedCompactState() {
         document.body.style.overflow = '';
     }
 
+    // ---------------- EUC List Drawer (bottom sheet) ----------------
+
+    function openEucDrawer() {
+        const overlay = document.getElementById('euc-drawer-overlay');
+        const fab = document.getElementById('euc-drawer-fab');
+        if (!overlay) return;
+
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden', 'false');
+        if (fab) fab.setAttribute('aria-expanded', 'true');
+
+        // prevent background scroll (drawer has its own scroll)
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEucDrawer() {
+        const overlay = document.getElementById('euc-drawer-overlay');
+        const fab = document.getElementById('euc-drawer-fab');
+        if (!overlay) return;
+
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden', 'true');
+        if (fab) fab.setAttribute('aria-expanded', 'false');
+
+        // only release scroll if other overlays aren't open
+        const feedback = document.getElementById('feedback-overlay');
+        const chOverlay = document.getElementById('compare-history-overlay');
+        const feedbackOpen = feedback && getComputedStyle(feedback).display !== 'none';
+        const chOpen = chOverlay && getComputedStyle(chOverlay).display !== 'none' && chOverlay.getAttribute('aria-hidden') !== 'true';
+        if (!feedbackOpen && !chOpen) {
+            document.body.style.overflow = '';
+        }
+    }
+
     // ---------------- Video Reviews panel (replaces table below) ----------------
 
     function showVideoPanel(wheelName) {
-        const specsWrap = document.getElementById('specs-table-wrap');
         const videoWrap = document.getElementById('video-results-wrap');
         const titleEl   = document.getElementById('video-results-title');
         const subEl     = document.getElementById('video-results-subtitle');
 
-        if (specsWrap) specsWrap.style.display = 'none';
+        // The specs table is now inside a drawer; keep it intact and just close the drawer
+        closeEucDrawer();
         if (videoWrap) videoWrap.style.display = 'block';
 
         if (titleEl) titleEl.textContent = 'Video Reviews';
@@ -4206,13 +4448,11 @@ function updateSelectedCompactState() {
     }
 
     function hideVideoPanel() {
-        const specsWrap = document.getElementById('specs-table-wrap');
         const videoWrap = document.getElementById('video-results-wrap');
         const grid      = document.getElementById('video-grid');
         const loading   = document.getElementById('video-loading');
 
         if (videoWrap) videoWrap.style.display = 'none';
-        if (specsWrap) specsWrap.style.display = 'block';
         if (grid) grid.innerHTML = '';
         if (loading) loading.style.display = 'none';
 
@@ -4624,11 +4864,128 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
         if (!comparedHistory.length) {
             tab.style.display = 'none';
             countEl.textContent = '[ 0 ]';
+        } else {
+            tab.style.display = 'inline-flex';
+            countEl.textContent = '[ ' + comparedHistory.length + ' ]';
+        }
+
+        // keep overlay + stack + full-card list in sync
+        renderCompareHistoryOverlay();
+        renderCompareStack();
+        renderCompareCards();
+
+        // show/hide compare banner area based on whether anything is compared
+        const wrapper = document.getElementById('compare-wrapper');
+        if (wrapper) {
+            // Legacy single-compare banner: keep hidden (we now render full compare cards)
+            wrapper.style.display = 'none';
+        }
+    }
+
+    // Render full compare cards under the selected EUC (one per comparedHistory item)
+    function renderCompareCards() {
+        const host = document.getElementById('compare-cards');
+        if (!host) return;
+
+        if (!comparedHistory.length) {
+            host.innerHTML = '';
             return;
         }
 
-        tab.style.display = 'inline-flex';
-        countEl.textContent = '[ ' + comparedHistory.length + ' ]';
+        const safe = (v) => (v && String(v).trim()) ? String(v).trim() : 'N/A';
+
+        host.innerHTML = comparedHistory.map(item => {
+            const imgHtml = item.image
+                ? '<img src="' + item.image + '" alt="' + (item.name || 'EUC') + '"/>'
+                : '<div class="no-image">No image available</div>';
+
+            const srcLabel = siteLabelForSource(item.source);
+            const url = item.url || '#';
+
+            return (
+                '<div class="compare-card" data-key="' + item.key + '">' +
+                    '<div class="selected-image-box">' + imgHtml + '</div>' +
+                    '<div class="selected-info">' +
+                        '<div class="selected-title">' + safe(item.name) + '</div>' +
+                        '<div class="badge">' + safe(item.battype || 'Battery Type N/A') + '</div>' +
+                        '<div class="compare-specs-grid">' +
+                            '<div class="compare-spec-block"><div class="spec-label">Battery</div><div class="spec-main"><span class="spec-value">' + safe(item.battery) + '</span><div class="spec-bar"><div class="spec-bar-fill" style="width:65%"></div></div></div></div>' +
+                            '<div class="compare-spec-block"><div class="spec-label">Range</div><div class="spec-main"><span class="spec-value">' + safe(item.range) + '</span><div class="spec-bar"><div class="spec-bar-fill" style="width:65%"></div></div></div></div>' +
+                            '<div class="compare-spec-block"><div class="spec-label">Top Speed</div><div class="spec-main"><span class="spec-value">' + safe(item.speed) + '</span><div class="spec-bar"><div class="spec-bar-fill" style="width:65%"></div></div></div></div>' +
+                            '<div class="compare-spec-block"><div class="spec-label">Motor Power</div><div class="spec-main"><span class="spec-value">' + safe(item.motor) + '</span><div class="spec-bar"><div class="spec-bar-fill" style="width:65%"></div></div></div></div>' +
+                            '<div class="compare-spec-block"><div class="spec-label">Weight</div><div class="spec-main"><span class="spec-value">' + safe(item.weight) + '</span><div class="spec-bar"><div class="spec-bar-fill" style="width:65%"></div></div></div></div>' +
+                            '<div class="compare-spec-block"><div class="spec-label">Max Load</div><div class="spec-main"><span class="spec-value">' + safe(item.maxload) + '</span><div class="spec-bar"><div class="spec-bar-fill" style="width:65%"></div></div></div></div>' +
+                        '</div>' +
+                        '<div class="selected-actions">' +
+                            '<button class="compare-clear-btn" type="button" data-action="remove" data-key="' + item.key + '">Remove</button>' +
+                            '<button class="cmp-feedback-btn" type="button" data-action="feedback" data-name="' + (item.name || '') + '">Riders Feedback</button>' +
+                            '<a class="view-wheel-btn" target="_blank" href="' + url + '">View this wheel → (' + srcLabel + ')</a>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>'
+            );
+        }).join('');
+    }
+
+    function renderCompareStack() {
+        const stack = document.getElementById('compare-stack');
+        if (!stack) return;
+
+        if (!comparedHistory.length) {
+            stack.style.display = 'none';
+            stack.innerHTML = '';
+            return;
+        }
+
+        stack.style.display = 'flex';
+
+        const safe = (v) => (v && String(v).trim()) ? String(v).trim() : 'N/A';
+
+        stack.innerHTML = comparedHistory.map(item => {
+            const imgHtml = item.image
+                ? '<img src="' + item.image + '" alt="' + (item.name || 'EUC') + '"/>'
+                : '<div style="color:rgba(226,232,240,.65);font-weight:900;">No image</div>';
+
+            const srcLabel = siteLabelForSource(item.source);
+
+            return (
+                '<div class="compare-chip" data-key="' + item.key + '">' +
+                    '<div class="compare-chip-img">' + imgHtml + '</div>' +
+                    '<div class="compare-chip-main">' +
+                        '<div class="compare-chip-name">' + safe(item.name) + '</div>' +
+                        '<div class="compare-chip-meta">' +
+                            '<span>' + srcLabel + '</span>' +
+                            '<span>•</span>' +
+                            '<span>Battery: ' + safe(item.battery) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="compare-chip-actions">' +
+                        '<button class="compare-chip-remove" type="button" data-remove="1" title="Remove">✕</button>' +
+                    '</div>' +
+                '</div>'
+            );
+        }).join('');
+
+        // click handlers (focus / remove)
+        stack.querySelectorAll('.compare-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                const key = chip.getAttribute('data-key');
+                const isRemove = e.target && e.target.getAttribute && e.target.getAttribute('data-remove') === '1';
+                if (isRemove) {
+                    e.stopPropagation();
+                    removeCompareHistoryByKey(key);
+
+                    // If we removed the active item, pick the newest remaining and focus it
+                    if (comparedHistory.length) {
+                        const nextKey = comparedHistory[comparedHistory.length - 1].key;
+                        focusCompareHistoryByKey(nextKey);
+                    }
+                    return;
+                }
+
+                focusCompareHistoryByKey(key);
+            });
+        });
     }
 
     function renderCompareHistoryOverlay() {
@@ -4731,75 +5088,18 @@ document.querySelectorAll('.wheel-row').forEach(r => r.classList.remove('active-
         }
     }
 function updateCompareBanner(row) {
-        if (!compareMode) return;
+        // In the drawer UX, the orange per-row Compare button should:
+        // 1) ensure Compare mode is ON (so orange buttons are visible)
+        // 2) add the wheel to the compare list (endless, de-duped)
+        // 3) render ALL compared wheels as full cards under the selected EUC
+        if (!compareMode) setCompareMode(true);
 
-        const wrapper = document.getElementById('compare-wrapper');
-        if (!wrapper) return;
-        wrapper.style.display = 'flex';
-
-        // When a compare wheel is chosen, shrink the MAIN banner to the same compact style
+        // When a compare wheel is chosen, shrink the MAIN selected banner to the compact compare style
         compareSelectionActive = true;
         setSelectedCompareCompact(true);
         const activeRow = document.querySelector('.wheel-row.active-row');
-        if (activeRow) {
-            updateSelectedCompareSpecsFromRow(activeRow);
-        }
+        if (activeRow) updateSelectedCompareSpecsFromRow(activeRow);
 
-
-        const name = row.dataset.name || 'N/A';
-        const battery = row.dataset.battery || 'N/A';
-        const range = row.dataset.range || 'N/A';
-        const speed = row.dataset.speed || 'N/A';
-        const motor = row.dataset.motor || 'N/A';
-        const weight = row.dataset.weight || 'N/A';
-        const maxload = row.dataset.maxload || 'N/A';
-        const battype = row.dataset.battype || 'Battery Type N/A';
-        const url = row.dataset.url || '#';
-        const image = row.dataset.image || '';
-        const source = row.dataset.source || 'ewheels';
-
-        document.getElementById('cmp-name').textContent = name;
-        document.getElementById('cmp-battery').textContent = battery;
-        document.getElementById('cmp-range').textContent = range;
-        document.getElementById('cmp-speed').textContent = speed;
-        document.getElementById('cmp-motor').textContent = motor;
-        document.getElementById('cmp-weight').textContent = weight;
-        document.getElementById('cmp-maxload').textContent = maxload;
-        document.getElementById('cmp-battype-badge').textContent = battype || 'Battery Type N/A';
-
-        const link = document.getElementById('cmp-url');
-        link.href = url;
-        link.textContent = 'View this wheel → (' + siteLabelForSource(source) + ')';
-
-        const imgBox = document.getElementById('cmp-image-box');
-        imgBox.innerHTML = '';
-        if (image) {
-            const img = document.createElement('img');
-            img.src = image;
-            img.alt = name;
-            imgBox.appendChild(img);
-        } else {
-            const div = document.createElement('div');
-            div.className = 'no-image';
-            div.textContent = 'No image available';
-            imgBox.appendChild(div);
-        }
-
-        const batteryWh = parseBatteryWh(battery);
-        const rangeMi   = parseRangeMiles(range);
-        const speedMph  = parseSpeedMph(speed);
-        const motorW    = parseMotorW(motor);
-        const weightLb  = parseWeightLbs(weight);
-        const maxLoadLb = parseWeightLbs(maxload);
-
-        setSpecBar('cmp-battery-bar', batteryWh, 4000);
-        setSpecBar('cmp-range-bar',   rangeMi,   120);
-        setSpecBar('cmp-speed-bar',   speedMph,  55);
-        setSpecBar('cmp-motor-bar',   motorW,    4000);
-        setSpecBar('cmp-weight-bar',  weightLb,  120);
-        setSpecBar('cmp-maxload-bar', maxLoadLb, 350);
-
-        // Track this wheel in Compare History
         addRowToCompareHistory(row);
     }
 
@@ -5285,7 +5585,39 @@ function updateCompareBanner(row) {
             row.addEventListener('click', function() {
                 if (row.dataset.source !== currentSource) return;
                 updateSelected(row);
+                closeEucDrawer();
             });
+        });
+
+        // EUC drawer open/close wiring
+        const drawerFab = document.getElementById('euc-drawer-fab');
+        const drawerOverlay = document.getElementById('euc-drawer-overlay');
+        const drawerClose = document.getElementById('euc-drawer-close');
+
+        if (drawerFab) {
+            drawerFab.addEventListener('click', function(e){
+                e.stopPropagation();
+                openEucDrawer();
+            });
+        }
+        if (drawerClose) {
+            drawerClose.addEventListener('click', function(e){
+                e.stopPropagation();
+                closeEucDrawer();
+            });
+        }
+        if (drawerOverlay) {
+            drawerOverlay.addEventListener('click', function(e){
+                // click outside the drawer closes
+                if (e.target === drawerOverlay) closeEucDrawer();
+            });
+        }
+
+        document.addEventListener('keydown', function(e){
+            if (e.key === 'Escape') {
+                const o = document.getElementById('euc-drawer-overlay');
+                if (o && o.classList.contains('open')) closeEucDrawer();
+            }
         });
 
         const compareToggleBtn = document.getElementById('compare-toggle-btn');
@@ -5327,51 +5659,46 @@ function updateCompareBanner(row) {
             });
         }
 
-        const cmpFeedbackBtn = document.querySelector('.cmp-feedback-btn');
-        if (cmpFeedbackBtn) {
-            cmpFeedbackBtn.addEventListener('click', function(e) {
+        // Delegated actions for dynamically rendered compare cards
+        document.addEventListener('click', function(e){
+            const removeBtn = e.target.closest('[data-action="remove"][data-key]');
+            if (removeBtn) {
                 e.stopPropagation();
-                const nameEl = document.getElementById('cmp-name');
-                const wheelName = nameEl ? nameEl.textContent.trim() : 'This wheel';
-                openFeedbackModal(wheelName);
-            });
-        }
+                const key = removeBtn.getAttribute('data-key');
+                if (key) removeCompareHistoryByKey(key);
+                return;
+            }
 
-        document.querySelectorAll('.compare-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
+            const fbBtn = e.target.closest('[data-action="feedback"][data-name]');
+            if (fbBtn) {
                 e.stopPropagation();
-                const row = btn.closest('.wheel-row');
-                if (row && row.dataset.source === currentSource) {
-                    updateCompareBanner(row);
-                }
-            });
+                const nm = fbBtn.getAttribute('data-name') || 'This wheel';
+                openFeedbackModal(nm);
+                return;
+            }
+        }, { passive: true });
+        // Compare button (per-row) — use event delegation so it works in the drawer, search results, and any dynamically-rendered rows
+        document.addEventListener('click', function(e){
+            const btn = e.target.closest('.compare-btn');
+            if (!btn) return;
+            e.stopPropagation();
+
+            const row = btn.closest('.wheel-row');
+            if (!row) return;
+
+            // If user compares a wheel from a different distributor, switch context so everything stays consistent
+            const rowSource = row.dataset.source || currentSource || 'ewheels';
+            if (rowSource && rowSource !== currentSource) {
+                setSource(rowSource);
+            }
+
+            // Ensure compare mode is ON
+            if (!compareMode) setCompareMode(true);
+
+            updateCompareBanner(row);
         });
 
-        const clearBtn = document.querySelector('.compare-clear-btn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const wrapper = document.getElementById('compare-wrapper');
-                if (wrapper) {
-                    wrapper.style.display = 'none';
-                }
-
-                // Remove the active compared wheel from history (if any)
-                if (activeCompareKey) {
-                    removeCompareHistoryByKey(activeCompareKey);
-                }
-
-                // If no history left, fully exit compare mode and restore defaults
-                if (!comparedHistory.length) {
-                    compareSelectionActive = false;
-                    setCompareMode(false);
-                } else {
-                    // Exit compare mode visually, but keep history available
-                    compareSelectionActive = false;
-                    setCompareMode(false);
-                }
-            });
-        }
+        // (legacy single compare banner clear button removed; each compare card has its own Remove)
         // Compare History tab + overlay wiring
         const chTab = document.getElementById('compare-history-tab');
         if (chTab) {
