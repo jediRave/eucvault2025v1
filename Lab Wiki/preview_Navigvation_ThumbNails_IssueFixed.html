@@ -1,0 +1,1353 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CardioWave Lab Knowledge Base</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --line: #334155;
+      --accent: #2563eb;
+      --accent-2: #1d4ed8;
+      --success: #166534;
+      --warning: #92400e;
+      --danger: #991b1b;
+      --shadow: 0 8px 24px rgba(0,0,0,.18);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .title-wrap h1 {
+      margin: 0 0 6px;
+      font-size: 32px;
+    }
+
+    .title-wrap p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 760px;
+      line-height: 1.5;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button, .btn {
+      border: 1px solid transparent;
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: .18s ease;
+      box-shadow: var(--shadow);
+    }
+
+    button:hover, .btn:hover {
+      background: var(--accent-2);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    .btn-secondary:hover { background: #334155; }
+    .btn-success { background: var(--success); }
+    .btn-warning { background: var(--warning); }
+    .btn-danger { background: var(--danger); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: rgba(17,24,39,.78);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .panel-header {
+      padding: 18px 18px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-body { padding: 16px 18px 18px; }
+
+    .search {
+      width: 100%;
+      margin-bottom: 14px;
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+    }
+
+    .category {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: rgba(15,23,42,.7);
+    }
+
+    .category-head,
+    .item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: 10px;
+    }
+
+    .category-head {
+      padding: 12px;
+      background: rgba(30,41,59,.8);
+    }
+
+    .toggle-btn,
+    .item-toggle-spacer {
+      width: 30px;
+      min-width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 30px;
+    }
+
+    .toggle-btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0b1220;
+      color: var(--text);
+      padding: 0;
+      font-size: 18px;
+      line-height: 1;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: none;
+    }
+
+    .toggle-btn:hover {
+      background: #172036;
+      transform: none;
+    }
+
+    .category-left,
+    .item-left {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .category-name,
+    .item-title {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .category-name {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .items { padding: 8px; }
+    .items.collapsed { display: none; }
+
+    .item {
+      padding: 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      margin-bottom: 8px;
+      column-gap: 12px;
+    }
+
+    .item:hover, .item.active {
+      background: rgba(37,99,235,.12);
+      border-color: rgba(37,99,235,.4);
+    }
+
+    .item-main {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .thumb,
+    .detail-thumb {
+      background: linear-gradient(145deg, #15233f 0%, #0f172a 100%);
+      border: 1px solid #385075;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .thumb {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    .detail-thumb {
+      width: 98px;
+      height: 98px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .thumb img,
+    .detail-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .item-title {
+      font-weight: 700;
+      line-height: 1.2;
+      font-size: 15px;
+    }
+
+    .item-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .category-actions,
+    .item-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 4px;
+      margin-left: 0;
+      flex: 0 0 auto;
+      min-width: 74px;
+    }
+
+    .action-link {
+      background: none;
+      border: 0;
+      box-shadow: none;
+      color: #93c5fd;
+      padding: 0;
+      border-radius: 0;
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      text-align: right;
+      text-decoration: none;
+    }
+
+    .action-link:hover {
+      background: none;
+      transform: none;
+      color: #bfdbfe;
+      text-decoration: underline;
+    }
+
+    .detail-empty {
+      min-height: 560px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 40px;
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .detail-header-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      min-width: 0;
+      flex: 1 1 420px;
+    }
+
+    .detail-title-block {
+      min-width: 0;
+      padding-top: 2px;
+    }
+
+    .detail-title-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .page-title-row h3,
+    .detail-title-block h3 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: flex-start;
+      flex: 0 0 auto;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .card {
+      background: rgba(15,23,42,.7);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .card h4 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .card ul {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.55;
+    }
+
+    .docs-list, .insight-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .doc, .insight {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: rgba(17,24,39,.75);
+    }
+
+    .doc small, .insight small {
+      color: var(--muted);
+      display: block;
+      margin-top: 4px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,.68);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 640px;
+      max-height: calc(100vh - 40px);
+      background: #0f172a;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header,
+    .modal-footer {
+      padding: 16px 18px;
+      flex: 0 0 auto;
+      background: #0f172a;
+    }
+
+    .modal-header { border-bottom: 1px solid var(--line); }
+    .modal-footer {
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .modal h3 { margin: 0; }
+
+    .field { margin-bottom: 14px; }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #020617;
+      color: var(--text);
+      padding: 12px;
+      font: inherit;
+    }
+
+    .field textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .thumbnail-help {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      margin-top: 6px;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    @media (max-width: 1040px) {
+      .layout,
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-empty {
+        min-height: 220px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .detail-header,
+      .detail-title-top {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .detail-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app { padding: 16px; }
+
+      .modal-backdrop {
+        padding: 10px;
+        align-items: flex-start;
+      }
+
+      .modal {
+        max-width: 100%;
+        max-height: calc(100vh - 20px);
+      }
+
+      .modal-body { padding: 14px; }
+      .modal-header,
+      .modal-footer { padding: 14px; }
+
+      .category-head,
+      .item {
+        grid-template-columns: 30px minmax(0, 1fr);
+        align-items: start;
+        row-gap: 8px;
+      }
+
+      .category-actions,
+      .item-actions {
+        grid-column: 2;
+        justify-content: flex-start;
+        align-items: flex-start;
+        min-width: 0;
+      }
+
+      .action-link { text-align: left; }
+      .item-main { grid-template-columns: 40px minmax(0, 1fr); }
+      .thumb { width: 40px; height: 40px; }
+      .detail-header-left { flex-direction: column; }
+      .detail-thumb { width: 86px; height: 86px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="title-wrap">
+        <h1>CardioWave Lab Knowledge Base</h1>
+        <p>
+          Self-contained intranet prototype for organizing equipment, procedures, troubleshooting, and lab intelligence.
+          All data is stored in your browser using local storage, so this can run from a single file on an internal network or local drive.
+        </p>
+      </div>
+      <div class="toolbar">
+        <button class="btn-secondary" onclick="resetData()">Reset Demo Data</button>
+        <button onclick="openAddCategoryModal()">Add Category</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Navigation</h2>
+        </div>
+        <div class="panel-body">
+          <input id="searchInput" class="search" type="text" placeholder="Search categories, items, docs, or insights..." oninput="renderNavigation()" />
+          <div id="navRoot"></div>
+          <div class="footer-note">
+            Suggested structure: Equipment, Lab Tools, Procedures, Troubleshooting, Lab Intelligence, Contributors.
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Details</h2>
+        </div>
+        <div class="panel-body" id="detailRoot">
+          <div class="detail-empty">
+            <div>
+              <h3 style="margin-top:0;">Select an item from the left</h3>
+              <p>Open an equipment or procedure entry to view overview content, documents, insights, and thumbnails.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h3 id="modalTitle">Modal</h3>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'cw_lab_knowledge_base_v2_thumbnails';
+    const NAV_STATE_KEY = 'cw_lab_nav_state_v1';
+
+    let selectedCategoryId = null;
+    let selectedItemId = null;
+
+    const defaultData = {
+      categories: [
+        {
+          id: cryptoRandom(),
+          name: 'Equipment',
+          items: [
+            {
+              id: cryptoRandom(),
+              name: 'Generator',
+              thumbnail: '',
+              overview: 'Main PEF delivery unit used in DV, dry runs, and bench testing. Interfaces with Connect and Remote.',
+              keySpecs: ['QS / OS operating modes', 'Supports calibration workflows', 'Used with MCU v2.1.0 in several lab contexts'],
+              systemRelationships: ['Connect Device → impedance mapping', 'Remote Display → visualization', 'Catheter → source interface'],
+              testUsage: ['Used in DV runs', 'Commonly paired with breakout fixtures', 'Requires calibration validation before execution'],
+              calibration: ['High / low resistor method', 'Cross-generator consistency should be checked'],
+              commonIssues: ['Voltage drift', 'Calibration mismatch', 'Generator-to-generator variation'],
+              troubleshooting: ['Verify calibration values', 'Compare behavior across generators', 'Check Connect path effects'],
+              docs: [
+                { id: cryptoRandom(), name: 'GEN_Onboarding.docx', note: 'Starter onboarding document placeholder' },
+                { id: cryptoRandom(), name: 'GEN_Calibration.docx', note: 'Calibration process placeholder' },
+                { id: cryptoRandom(), name: 'GEN_Testing.xlsx', note: 'Test tracker placeholder' }
+              ],
+              insights: [
+                { id: cryptoRandom(), title: 'Calibration consistency', body: 'Observed that one generator ran significantly higher than another under the same calibration approach. This suggests the method may need a repeatability check across units.' }
+              ]
+            },
+            {
+              id: cryptoRandom(),
+              name: 'Connect Device',
+              thumbnail: '',
+              overview: 'Device responsible for impedance mapping, calibration workflows, and data relationships with catheter inputs.',
+              keySpecs: ['Connect FW references can be stored here', 'Supports channel and spline related workflows'],
+              systemRelationships: ['Receives catheter related information', 'Works with Generator and Remote'],
+              testUsage: ['Used in mapping and calibration tests'],
+              calibration: ['Store resistor and deciohm references here'],
+              commonIssues: ['Communication issues', 'Unexpected impedance shifts'],
+              troubleshooting: ['Check fixture path', 'Confirm expected resistor values'],
+              docs: [],
+              insights: []
+            },
+            {
+              id: cryptoRandom(),
+              name: 'Remote Display',
+              thumbnail: '',
+              overview: 'Visualization component for impedance and related outputs.',
+              keySpecs: [],
+              systemRelationships: [],
+              testUsage: [],
+              calibration: [],
+              commonIssues: [],
+              troubleshooting: [],
+              docs: [],
+              insights: []
+            },
+            {
+              id: cryptoRandom(),
+              name: 'Automatic Footswitch',
+              thumbnail: '',
+              overview: 'Accessory concept and test tool for controlled pulse triggering.',
+              keySpecs: ['Manual and automatic modes', 'Timing preset logic'],
+              systemRelationships: ['Supports generator test flows'],
+              testUsage: ['Use for repeatable triggering in bench tests'],
+              calibration: [],
+              commonIssues: [],
+              troubleshooting: [],
+              docs: [],
+              insights: []
+            }
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Lab Tools',
+          items: [
+            emptyItem('Debug Cable'),
+            emptyItem('Breakout Box'),
+            emptyItem('MCU Programmer'),
+            emptyItem('FPGA Programmer'),
+            emptyItem('Display Programmer'),
+            emptyItem('Xilinx Programmer')
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Procedures',
+          items: [
+            emptyItem('Waveform Testing'),
+            emptyItem('Voltage Verification'),
+            emptyItem('Calibration')
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Troubleshooting',
+          items: [
+            emptyItem('Fault Codes'),
+            emptyItem('Communication Errors'),
+            emptyItem('Voltage Issues')
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Lab Intelligence',
+          items: [
+            {
+              ...emptyItem('Calibration Observations'),
+              overview: 'Capture system-level observations that should not get buried in protocol files.',
+              insights: [
+                { id: cryptoRandom(), title: 'Generator variation', body: 'Generator-to-generator differences should be tracked centrally so verification runs are more consistent.' }
+              ]
+            },
+            emptyItem('Impedance Behavior Notes'),
+            emptyItem('Fixture Insights'),
+            emptyItem('Efficiency Improvements')
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Contributors',
+          items: [emptyItem('Team Members')]
+        }
+      ]
+    };
+
+    function emptyItem(name) {
+      return {
+        id: cryptoRandom(),
+        name,
+        thumbnail: '',
+        overview: '',
+        keySpecs: [],
+        systemRelationships: [],
+        testUsage: [],
+        calibration: [],
+        commonIssues: [],
+        troubleshooting: [],
+        docs: [],
+        insights: []
+      };
+    }
+
+    function cryptoRandom() {
+      return 'id-' + Math.random().toString(36).slice(2, 11);
+    }
+
+    function getData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? hydrateData(JSON.parse(raw)) : hydrateData(structuredClone(defaultData));
+    }
+
+    function hydrateData(data) {
+      data.categories.forEach(category => {
+        category.items.forEach(item => {
+          if (typeof item.thumbnail !== 'string') item.thumbnail = '';
+          if (!Array.isArray(item.keySpecs)) item.keySpecs = [];
+          if (!Array.isArray(item.systemRelationships)) item.systemRelationships = [];
+          if (!Array.isArray(item.testUsage)) item.testUsage = [];
+          if (!Array.isArray(item.calibration)) item.calibration = [];
+          if (!Array.isArray(item.commonIssues)) item.commonIssues = [];
+          if (!Array.isArray(item.troubleshooting)) item.troubleshooting = [];
+          if (!Array.isArray(item.docs)) item.docs = [];
+          if (!Array.isArray(item.insights)) item.insights = [];
+        });
+      });
+      return data;
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function getNavState() {
+      const raw = localStorage.getItem(NAV_STATE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }
+
+    function saveNavState(state) {
+      localStorage.setItem(NAV_STATE_KEY, JSON.stringify(state));
+    }
+
+    function initializeNavState(categories) {
+      const state = getNavState();
+      let changed = false;
+
+      categories.forEach((category, index) => {
+        if (!(category.id in state)) {
+          state[category.id] = index === 0;
+          changed = true;
+        }
+      });
+
+      Object.keys(state).forEach(id => {
+        if (!categories.some(category => category.id === id)) {
+          delete state[id];
+          changed = true;
+        }
+      });
+
+      if (changed) saveNavState(state);
+    }
+
+    function isCategoryExpanded(categoryId, searchActive) {
+      if (searchActive) return true;
+      const state = getNavState();
+      return !!state[categoryId];
+    }
+
+    function toggleCategory(categoryId) {
+      const state = getNavState();
+      state[categoryId] = !state[categoryId];
+      saveNavState(state);
+      renderNavigation();
+    }
+
+    function initialize() {
+      if (!localStorage.getItem(STORAGE_KEY)) {
+        saveData(hydrateData(structuredClone(defaultData)));
+      }
+
+      const data = getData();
+      initializeNavState(data.categories);
+      autoSelectFirstItem(data);
+      renderNavigation();
+      renderDetails();
+    }
+
+    function autoSelectFirstItem(data) {
+      if (selectedCategoryId && selectedItemId) return;
+      const preferredCategory = data.categories.find(c => c.name === 'Lab Tools');
+      const preferredItem = preferredCategory?.items.find(i => i.name === 'Xilinx Programmer');
+      if (preferredCategory && preferredItem) {
+        selectedCategoryId = preferredCategory.id;
+        selectedItemId = preferredItem.id;
+        return;
+      }
+      const firstCategory = data.categories.find(c => c.items.length);
+      if (firstCategory) {
+        selectedCategoryId = firstCategory.id;
+        selectedItemId = firstCategory.items[0].id;
+      }
+    }
+
+    function renderNavigation() {
+      const data = getData();
+      initializeNavState(data.categories);
+
+      const root = document.getElementById('navRoot');
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const searchActive = q.length > 0;
+
+      root.innerHTML = '';
+
+      data.categories.forEach(category => {
+        const matchingItems = category.items.filter(item => {
+          if (!q) return true;
+          const haystack = [
+            category.name,
+            item.name,
+            item.overview,
+            ...(item.docs || []).map(d => d.name + ' ' + (d.note || '')),
+            ...(item.insights || []).map(i => i.title + ' ' + i.body)
+          ].join(' ').toLowerCase();
+          return haystack.includes(q);
+        });
+
+        const categoryMatch = !q || category.name.toLowerCase().includes(q) || matchingItems.length > 0;
+        if (!categoryMatch) return;
+
+        const expanded = isCategoryExpanded(category.id, searchActive);
+
+        const categoryEl = document.createElement('div');
+        categoryEl.className = 'category';
+        categoryEl.innerHTML = `
+          <div class="category-head">
+            <button
+              class="toggle-btn"
+              type="button"
+              onclick="toggleCategory('${category.id}')"
+              aria-expanded="${expanded ? 'true' : 'false'}"
+              aria-label="${expanded ? 'Collapse' : 'Expand'} ${escapeHtml(category.name)}"
+              title="${expanded ? 'Collapse' : 'Expand'}"
+            >
+              ${expanded ? '&minus;' : '+'}
+            </button>
+            <div class="category-left">
+              <div class="category-name">${escapeHtml(category.name)}</div>
+            </div>
+            <div class="category-actions">
+              <button class="action-link" type="button" onclick="openRenameCategoryModal('${category.id}')">Edit Name</button>
+              <button class="action-link" type="button" onclick="openAddItemModal('${category.id}')">Add Item</button>
+            </div>
+          </div>
+          <div class="items ${expanded ? '' : 'collapsed'}"></div>
+        `;
+
+        const itemsRoot = categoryEl.querySelector('.items');
+
+        if (expanded) {
+          matchingItems.forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'item' + (selectedItemId === item.id ? ' active' : '');
+            itemEl.onclick = () => selectItem(category.id, item.id);
+            itemEl.innerHTML = `
+              <div class="item-toggle-spacer" aria-hidden="true"></div>
+              <div class="item-main">
+                ${renderThumbnail(item, 'thumb')}
+                <div class="item-left">
+                  <div class="item-title">${escapeHtml(item.name)}</div>
+                  <div class="item-subtitle">${item.docs.length} docs · ${item.insights.length} insights</div>
+                </div>
+              </div>
+              <div class="item-actions" onclick="event.stopPropagation()">
+                <button class="action-link" type="button" onclick="openRenameItemModal('${category.id}', '${item.id}')">Edit Name</button>
+                <button class="action-link" type="button" onclick="openAddDocModal('${category.id}', '${item.id}')">Add Doc</button>
+              </div>
+            `;
+            itemsRoot.appendChild(itemEl);
+          });
+        }
+
+        root.appendChild(categoryEl);
+      });
+    }
+
+    function selectItem(categoryId, itemId) {
+      selectedCategoryId = categoryId;
+      selectedItemId = itemId;
+
+      const state = getNavState();
+      state[categoryId] = true;
+      saveNavState(state);
+
+      renderNavigation();
+      renderDetails();
+    }
+
+    function renderDetails() {
+      const root = document.getElementById('detailRoot');
+      const data = getData();
+      const category = data.categories.find(c => c.id === selectedCategoryId);
+      const item = category?.items.find(i => i.id === selectedItemId);
+
+      if (!item) {
+        root.innerHTML = `
+          <div class="detail-empty">
+            <div>
+              <h3 style="margin-top:0;">Select an item from the left</h3>
+              <p>Open an equipment or procedure entry to view overview content, documents, insights, and thumbnails.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      root.innerHTML = `
+        <div class="detail-header">
+          <div class="detail-header-left">
+            ${renderThumbnail(item, 'detail-thumb')}
+            <div class="detail-title-block">
+              <div class="detail-title-top">
+                <div>
+                  <h3>${escapeHtml(item.name)}</h3>
+                  <div class="meta">Category: ${escapeHtml(category.name)} · ${item.docs.length} documents · ${item.insights.length} insights</div>
+                </div>
+                <div class="detail-actions">
+                  <button class="btn-secondary" onclick="openEditContentModal('${category.id}', '${item.id}')">Edit Content</button>
+                  <button onclick="openAddDocModal('${category.id}', '${item.id}')">Add Doc</button>
+                  <button class="btn-success" onclick="openAddInsightModal('${category.id}', '${item.id}')">Add Insight</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-grid">
+          ${renderListCard('Overview', item.overview ? [item.overview] : [])}
+          ${renderListCard('Key Specs', item.keySpecs)}
+          ${renderListCard('System Relationships', item.systemRelationships)}
+          ${renderListCard('Test Usage', item.testUsage)}
+          ${renderListCard('Calibration', item.calibration)}
+          ${renderListCard('Common Issues', item.commonIssues)}
+          ${renderListCard('Troubleshooting', item.troubleshooting)}
+          <div class="card">
+            <h4>Documents</h4>
+            <div class="docs-list">
+              ${item.docs.length ? item.docs.map(doc => `
+                <div class="doc">
+                  <strong>${escapeHtml(doc.name)}</strong>
+                  <small>${escapeHtml(doc.note || 'No note added')}</small>
+                </div>
+              `).join('') : '<div class="doc">No documents added yet.</div>'}
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <h4>Insights</h4>
+          <div class="insight-list">
+            ${item.insights.length ? item.insights.map(insight => `
+              <div class="insight">
+                <strong>${escapeHtml(insight.title)}</strong>
+                <small>${escapeHtml(insight.body)}</small>
+              </div>
+            `).join('') : '<div class="insight">No insights added yet.</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderThumbnail(item, className) {
+      const img = (item.thumbnail || '').trim();
+      if (img) {
+        return `<div class="${className}" title="${escapeHtml(item.name)} thumbnail"><img src="${escapeAttr(img)}" alt="${escapeAttr(item.name)} thumbnail" loading="lazy"></div>`;
+      }
+
+      return `<div class="${className}" title="${escapeHtml(item.name)} thumbnail">${buildPlaceholderSvg(item.name)}</div>`;
+    }
+
+    function buildPlaceholderSvg(name) {
+      const initials = (name || '?')
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(part => part[0].toUpperCase())
+        .join('') || '?';
+
+      const safeName = escapeHtml(name || 'Item');
+      const safeInitials = escapeHtml(initials);
+      return `
+        <svg viewBox="0 0 100 100" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-label="${safeName} placeholder thumbnail" role="img">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#1d4ed8" />
+              <stop offset="100%" stop-color="#0f172a" />
+            </linearGradient>
+          </defs>
+          <rect width="100" height="100" rx="16" fill="url(#g)" />
+          <circle cx="50" cy="38" r="18" fill="rgba(255,255,255,0.14)" />
+          <rect x="22" y="60" width="56" height="14" rx="7" fill="rgba(255,255,255,0.12)" />
+          <text x="50" y="43" text-anchor="middle" font-size="20" font-family="Arial, Helvetica, sans-serif" font-weight="700" fill="#e5e7eb">${safeInitials}</text>
+        </svg>
+      `;
+    }
+
+    function renderListCard(title, items) {
+      return `
+        <div class="card">
+          <h4>${escapeHtml(title)}</h4>
+          ${items && items.length
+            ? `<ul>${items.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>`
+            : '<div class="meta">No content added yet.</div>'}
+        </div>
+      `;
+    }
+
+    function openModal(title, bodyHtml, footerHtml) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = bodyHtml;
+      document.getElementById('modalFooter').innerHTML = footerHtml;
+      document.getElementById('modalBackdrop').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modalBackdrop').style.display = 'none';
+      document.getElementById('modalBody').scrollTop = 0;
+      document.body.style.overflow = '';
+    }
+
+    function openAddCategoryModal() {
+      openModal(
+        'Add Category',
+        `<div class="field"><label>Category Name</label><input id="newCategoryName" type="text" placeholder="Example: Equipment" /></div>`,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="addCategory()">Save</button>`
+      );
+    }
+
+    function addCategory() {
+      const name = document.getElementById('newCategoryName').value.trim();
+      if (!name) return alert('Please enter a category name.');
+
+      const data = getData();
+      const newCategory = { id: cryptoRandom(), name, items: [] };
+      data.categories.push(newCategory);
+      saveData(data);
+
+      const state = getNavState();
+      state[newCategory.id] = false;
+      saveNavState(state);
+
+      closeModal();
+      renderNavigation();
+    }
+
+    function openRenameCategoryModal(categoryId) {
+      const data = getData();
+      const category = data.categories.find(c => c.id === categoryId);
+      openModal(
+        'Rename Category',
+        `<div class="field"><label>Category Name</label><input id="renameCategoryName" type="text" value="${escapeAttr(category.name)}" /></div>`,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="renameCategory('${categoryId}')">Save</button>`
+      );
+    }
+
+    function renameCategory(categoryId) {
+      const name = document.getElementById('renameCategoryName').value.trim();
+      if (!name) return alert('Please enter a category name.');
+
+      const data = getData();
+      const category = data.categories.find(c => c.id === categoryId);
+      category.name = name;
+      saveData(data);
+
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openAddItemModal(categoryId) {
+      openModal(
+        'Add Item',
+        `
+          <div class="field"><label>Item Name</label><input id="newItemName" type="text" placeholder="Example: Generator" /></div>
+          <div class="field"><label>Thumbnail Image URL or Data URL (optional)</label><input id="newItemThumbnail" type="text" placeholder="Paste an image URL or base64 data URL" /></div>
+          <div class="thumbnail-help">Leave blank to use the built-in placeholder thumbnail.</div>
+        `,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="addItem('${categoryId}')">Save</button>`
+      );
+    }
+
+    function addItem(categoryId) {
+      const name = document.getElementById('newItemName').value.trim();
+      const thumbnail = document.getElementById('newItemThumbnail').value.trim();
+      if (!name) return alert('Please enter an item name.');
+
+      const data = getData();
+      const category = data.categories.find(c => c.id === categoryId);
+      const item = emptyItem(name);
+      item.thumbnail = thumbnail;
+      category.items.push(item);
+      saveData(data);
+
+      selectedCategoryId = categoryId;
+      selectedItemId = item.id;
+
+      const state = getNavState();
+      state[categoryId] = true;
+      saveNavState(state);
+
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openRenameItemModal(categoryId, itemId) {
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      openModal(
+        'Rename Item',
+        `<div class="field"><label>Item Name</label><input id="renameItemName" type="text" value="${escapeAttr(item.name)}" /></div>`,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="renameItem('${categoryId}', '${itemId}')">Save</button>`
+      );
+    }
+
+    function renameItem(categoryId, itemId) {
+      const name = document.getElementById('renameItemName').value.trim();
+      if (!name) return alert('Please enter an item name.');
+
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      item.name = name;
+      saveData(data);
+
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openAddDocModal(categoryId, itemId) {
+      openModal(
+        'Add Document Entry',
+        `
+          <div class="field"><label>Document Name</label><input id="docName" type="text" placeholder="Example: GEN_Onboarding.docx" /></div>
+          <div class="field"><label>Note</label><textarea id="docNote" placeholder="Optional note about this document"></textarea></div>
+        `,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="addDoc('${categoryId}', '${itemId}')">Save</button>`
+      );
+    }
+
+    function addDoc(categoryId, itemId) {
+      const docName = document.getElementById('docName').value.trim();
+      const docNote = document.getElementById('docNote').value.trim();
+      if (!docName) return alert('Please enter a document name.');
+
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      item.docs.push({ id: cryptoRandom(), name: docName, note: docNote });
+      saveData(data);
+
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openAddInsightModal(categoryId, itemId) {
+      openModal(
+        'Add Insight',
+        `
+          <div class="field"><label>Insight Title</label><input id="insightTitle" type="text" placeholder="Example: Calibration repeatability concern" /></div>
+          <div class="field"><label>Insight Details</label><textarea id="insightBody" placeholder="Describe the observation, lesson learned, or recommendation"></textarea></div>
+        `,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="addInsight('${categoryId}', '${itemId}')">Save</button>`
+      );
+    }
+
+    function addInsight(categoryId, itemId) {
+      const title = document.getElementById('insightTitle').value.trim();
+      const body = document.getElementById('insightBody').value.trim();
+      if (!title || !body) return alert('Please enter both a title and details.');
+
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      item.insights.push({ id: cryptoRandom(), title, body });
+      saveData(data);
+
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openEditContentModal(categoryId, itemId) {
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      openModal(
+        'Edit Item Content',
+        `
+          <div class="field">
+            <label>Thumbnail Image URL or Data URL</label>
+            <input id="editThumbnail" type="text" value="${escapeAttr(item.thumbnail || '')}" placeholder="Paste an image URL or base64 data URL" />
+            <div class="thumbnail-help">This thumbnail appears in the left navigation and in the larger detail header. Leave blank to use the built-in placeholder.</div>
+          </div>
+          ${textField('Overview', 'editOverview', item.overview)}
+          ${textField('Key Specs (one line per entry)', 'editKeySpecs', (item.keySpecs || []).join('\n'), true)}
+          ${textField('System Relationships (one line per entry)', 'editSystemRelationships', (item.systemRelationships || []).join('\n'), true)}
+          ${textField('Test Usage (one line per entry)', 'editTestUsage', (item.testUsage || []).join('\n'), true)}
+          ${textField('Calibration (one line per entry)', 'editCalibration', (item.calibration || []).join('\n'), true)}
+          ${textField('Common Issues (one line per entry)', 'editCommonIssues', (item.commonIssues || []).join('\n'), true)}
+          ${textField('Troubleshooting (one line per entry)', 'editTroubleshooting', (item.troubleshooting || []).join('\n'), true)}
+        `,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="saveItemContent('${categoryId}', '${itemId}')">Save</button>`
+      );
+    }
+
+    function textField(label, id, value, textarea = true) {
+      return `
+        <div class="field">
+          <label>${escapeHtml(label)}</label>
+          ${textarea
+            ? `<textarea id="${id}">${escapeHtml(value || '')}</textarea>`
+            : `<input id="${id}" type="text" value="${escapeAttr(value || '')}" />`}
+        </div>
+      `;
+    }
+
+    function saveItemContent(categoryId, itemId) {
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+
+      item.thumbnail = document.getElementById('editThumbnail').value.trim();
+      item.overview = document.getElementById('editOverview').value.trim();
+      item.keySpecs = splitLines('editKeySpecs');
+      item.systemRelationships = splitLines('editSystemRelationships');
+      item.testUsage = splitLines('editTestUsage');
+      item.calibration = splitLines('editCalibration');
+      item.commonIssues = splitLines('editCommonIssues');
+      item.troubleshooting = splitLines('editTroubleshooting');
+
+      saveData(data);
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function splitLines(id) {
+      return document.getElementById(id).value
+        .split('\n')
+        .map(x => x.trim())
+        .filter(Boolean);
+    }
+
+    function resetData() {
+      if (!confirm('Reset the site back to the demo data?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(NAV_STATE_KEY);
+      selectedCategoryId = null;
+      selectedItemId = null;
+      initialize();
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/\n/g, '&#10;');
+    }
+
+    document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'modalBackdrop') closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('modalBackdrop').style.display === 'flex') {
+        closeModal();
+      }
+    });
+
+    initialize();
+  </script>
+</body>
+</html>

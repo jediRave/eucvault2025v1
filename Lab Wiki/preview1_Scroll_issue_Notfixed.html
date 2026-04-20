@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CardioWave Lab Knowledge Base</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --card: #ffffff;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --line: #334155;
+      --accent: #2563eb;
+      --accent-2: #1d4ed8;
+      --success: #166534;
+      --warning: #92400e;
+      --danger: #991b1b;
+      --shadow: 0 8px 24px rgba(0,0,0,.18);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .title-wrap h1 {
+      margin: 0 0 6px;
+      font-size: 32px;
+    }
+
+    .title-wrap p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 760px;
+      line-height: 1.5;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button, .btn {
+      border: 1px solid transparent;
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: .18s ease;
+      box-shadow: var(--shadow);
+    }
+
+    button:hover, .btn:hover {
+      background: var(--accent-2);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    .btn-secondary:hover { background: #334155; }
+
+    .btn-success { background: var(--success); }
+    .btn-warning { background: var(--warning); }
+    .btn-danger { background: var(--danger); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: rgba(17,24,39,.78);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .panel-header {
+      padding: 18px 18px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-body {
+      padding: 16px 18px 18px;
+    }
+
+    .search {
+      width: 100%;
+      margin-bottom: 14px;
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      outline: none;
+    }
+
+    .category {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: rgba(15,23,42,.7);
+    }
+
+    .category-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 12px;
+      background: rgba(30,41,59,.8);
+    }
+
+    .category-head strong {
+      font-size: 15px;
+    }
+
+    .category-actions, .item-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tiny-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 8px;
+      box-shadow: none;
+    }
+
+    .items {
+      padding: 8px;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      margin-bottom: 8px;
+    }
+
+    .item:hover, .item.active {
+      background: rgba(37,99,235,.12);
+      border-color: rgba(37,99,235,.4);
+    }
+
+    .item-title {
+      font-weight: 600;
+    }
+
+    .item-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .detail-empty {
+      min-height: 560px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 40px;
+    }
+
+    .page-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .page-title-row h3 {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .card {
+      background: rgba(15,23,42,.7);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .card h4 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .card ul {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.55;
+    }
+
+    .docs-list, .insight-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .doc, .insight {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: rgba(17,24,39,.75);
+    }
+
+    .doc small, .insight small {
+      color: var(--muted);
+      display: block;
+      margin-top: 4px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,.68);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 20px;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 560px;
+      background: #0f172a;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .modal-header, .modal-footer {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .modal-footer {
+      border-bottom: 0;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .modal-body {
+      padding: 18px;
+    }
+
+    .modal h3 {
+      margin: 0;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .field input, .field textarea, .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #020617;
+      color: var(--text);
+      padding: 12px;
+      font: inherit;
+    }
+
+    .field textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 940px) {
+      .layout, .section-grid { grid-template-columns: 1fr; }
+      .detail-empty { min-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="title-wrap">
+        <h1>CardioWave Lab Knowledge Base</h1>
+        <p>
+          Self-contained intranet prototype for organizing equipment, procedures, troubleshooting, and lab intelligence.
+          All data is stored in your browser using local storage, so this can run from a single file on an internal network or local drive.
+        </p>
+      </div>
+      <div class="toolbar">
+        <button class="btn-secondary" onclick="resetData()">Reset Demo Data</button>
+        <button onclick="openAddCategoryModal()">Add Category</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Navigation</h2>
+        </div>
+        <div class="panel-body">
+          <input id="searchInput" class="search" type="text" placeholder="Search categories, items, docs, or insights..." oninput="renderNavigation()" />
+          <div id="navRoot"></div>
+          <div class="footer-note">
+            Suggested structure: Equipment, Lab Tools, Procedures, Troubleshooting, Lab Intelligence, Contributors.
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Details</h2>
+        </div>
+        <div class="panel-body" id="detailRoot">
+          <div class="detail-empty">
+            <div>
+              <h3 style="margin-top:0;">Select an item from the left</h3>
+              <p>Open an equipment or procedure entry to view overview content, documents, and insights.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Modal</h3>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'cw_lab_knowledge_base_v1';
+    let selectedCategoryId = null;
+    let selectedItemId = null;
+
+    const defaultData = {
+      categories: [
+        {
+          id: cryptoRandom(),
+          name: 'Equipment',
+          items: [
+            {
+              id: cryptoRandom(),
+              name: 'Generator',
+              overview: 'Main PEF delivery unit used in DV, dry runs, and bench testing. Interfaces with Connect and Remote.',
+              keySpecs: ['QS / OS operating modes', 'Supports calibration workflows', 'Used with MCU v2.1.0 in several lab contexts'],
+              systemRelationships: ['Connect Device → impedance mapping', 'Remote Display → visualization', 'Catheter → source interface'],
+              testUsage: ['Used in DV runs', 'Commonly paired with breakout fixtures', 'Requires calibration validation before execution'],
+              calibration: ['High / low resistor method', 'Cross-generator consistency should be checked'],
+              commonIssues: ['Voltage drift', 'Calibration mismatch', 'Generator-to-generator variation'],
+              troubleshooting: ['Verify calibration values', 'Compare behavior across generators', 'Check Connect path effects'],
+              docs: [
+                { id: cryptoRandom(), name: 'GEN_Onboarding.docx', note: 'Starter onboarding document placeholder' },
+                { id: cryptoRandom(), name: 'GEN_Calibration.docx', note: 'Calibration process placeholder' },
+                { id: cryptoRandom(), name: 'GEN_Testing.xlsx', note: 'Test tracker placeholder' }
+              ],
+              insights: [
+                { id: cryptoRandom(), title: 'Calibration consistency', body: 'Observed that one generator ran significantly higher than another under the same calibration approach. This suggests the method may need a repeatability check across units.' }
+              ]
+            },
+            {
+              id: cryptoRandom(),
+              name: 'Connect Device',
+              overview: 'Device responsible for impedance mapping, calibration workflows, and data relationships with catheter inputs.',
+              keySpecs: ['Connect FW references can be stored here', 'Supports channel and spline related workflows'],
+              systemRelationships: ['Receives catheter related information', 'Works with Generator and Remote'],
+              testUsage: ['Used in mapping and calibration tests'],
+              calibration: ['Store resistor and deciohm references here'],
+              commonIssues: ['Communication issues', 'Unexpected impedance shifts'],
+              troubleshooting: ['Check fixture path', 'Confirm expected resistor values'],
+              docs: [],
+              insights: []
+            },
+            {
+              id: cryptoRandom(),
+              name: 'Remote Display',
+              overview: 'Visualization component for impedance and related outputs.',
+              keySpecs: [],
+              systemRelationships: [],
+              testUsage: [],
+              calibration: [],
+              commonIssues: [],
+              troubleshooting: [],
+              docs: [],
+              insights: []
+            },
+            {
+              id: cryptoRandom(),
+              name: 'Automatic Footswitch',
+              overview: 'Accessory concept and test tool for controlled pulse triggering.',
+              keySpecs: ['Manual and automatic modes', 'Timing preset logic'],
+              systemRelationships: ['Supports generator test flows'],
+              testUsage: ['Use for repeatable triggering in bench tests'],
+              calibration: [],
+              commonIssues: [],
+              troubleshooting: [],
+              docs: [],
+              insights: []
+            }
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Lab Tools',
+          items: [
+            emptyItem('Debug Cable'),
+            emptyItem('Breakout Box'),
+            emptyItem('MCU Programmer'),
+            emptyItem('FPGA Programmer'),
+            emptyItem('Display Programmer')
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Procedures',
+          items: [
+            emptyItem('Waveform Testing'),
+            emptyItem('Voltage Verification'),
+            emptyItem('Calibration')
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Troubleshooting',
+          items: [
+            emptyItem('Fault Codes'),
+            emptyItem('Communication Errors'),
+            emptyItem('Voltage Issues')
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Lab Intelligence',
+          items: [
+            {
+              ...emptyItem('Calibration Observations'),
+              overview: 'Capture system-level observations that should not get buried in protocol files.',
+              insights: [
+                { id: cryptoRandom(), title: 'Generator variation', body: 'Generator-to-generator differences should be tracked centrally so verification runs are more consistent.' }
+              ]
+            },
+            emptyItem('Impedance Behavior Notes'),
+            emptyItem('Fixture Insights'),
+            emptyItem('Efficiency Improvements')
+          ]
+        },
+        {
+          id: cryptoRandom(),
+          name: 'Contributors',
+          items: [emptyItem('Team Members')]
+        }
+      ]
+    };
+
+    function emptyItem(name) {
+      return {
+        id: cryptoRandom(),
+        name,
+        overview: '',
+        keySpecs: [],
+        systemRelationships: [],
+        testUsage: [],
+        calibration: [],
+        commonIssues: [],
+        troubleshooting: [],
+        docs: [],
+        insights: []
+      };
+    }
+
+    function cryptoRandom() {
+      return 'id-' + Math.random().toString(36).slice(2, 11);
+    }
+
+    function getData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : structuredClone(defaultData);
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function initialize() {
+      if (!localStorage.getItem(STORAGE_KEY)) saveData(structuredClone(defaultData));
+      renderNavigation();
+      renderDetails();
+    }
+
+    function renderNavigation() {
+      const data = getData();
+      const root = document.getElementById('navRoot');
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      root.innerHTML = '';
+
+      data.categories.forEach(category => {
+        const matchingItems = category.items.filter(item => {
+          if (!q) return true;
+          const haystack = [
+            category.name,
+            item.name,
+            item.overview,
+            ...(item.docs || []).map(d => d.name + ' ' + (d.note || '')),
+            ...(item.insights || []).map(i => i.title + ' ' + i.body)
+          ].join(' ').toLowerCase();
+          return haystack.includes(q);
+        });
+
+        const categoryMatch = !q || category.name.toLowerCase().includes(q) || matchingItems.length > 0;
+        if (!categoryMatch) return;
+
+        const categoryEl = document.createElement('div');
+        categoryEl.className = 'category';
+        categoryEl.innerHTML = `
+          <div class="category-head">
+            <strong>${escapeHtml(category.name)}</strong>
+            <div class="category-actions">
+              <button class="tiny-btn btn-secondary" onclick="openRenameCategoryModal('${category.id}')">Edit Name</button>
+              <button class="tiny-btn" onclick="openAddItemModal('${category.id}')">Add Item</button>
+            </div>
+          </div>
+          <div class="items"></div>
+        `;
+
+        const itemsRoot = categoryEl.querySelector('.items');
+        matchingItems.forEach(item => {
+          const itemEl = document.createElement('div');
+          itemEl.className = 'item' + (selectedItemId === item.id ? ' active' : '');
+          itemEl.onclick = () => selectItem(category.id, item.id);
+          itemEl.innerHTML = `
+            <div>
+              <div class="item-title">${escapeHtml(item.name)}</div>
+              <div class="item-subtitle">${item.docs.length} docs · ${item.insights.length} insights</div>
+            </div>
+            <div class="item-actions" onclick="event.stopPropagation()">
+              <button class="tiny-btn btn-secondary" onclick="openRenameItemModal('${category.id}', '${item.id}')">Edit Name</button>
+              <button class="tiny-btn" onclick="openAddDocModal('${category.id}', '${item.id}')">Add Doc</button>
+            </div>
+          `;
+          itemsRoot.appendChild(itemEl);
+        });
+
+        root.appendChild(categoryEl);
+      });
+    }
+
+    function selectItem(categoryId, itemId) {
+      selectedCategoryId = categoryId;
+      selectedItemId = itemId;
+      renderNavigation();
+      renderDetails();
+    }
+
+    function renderDetails() {
+      const root = document.getElementById('detailRoot');
+      const data = getData();
+      const category = data.categories.find(c => c.id === selectedCategoryId);
+      const item = category?.items.find(i => i.id === selectedItemId);
+
+      if (!item) {
+        root.innerHTML = `
+          <div class="detail-empty">
+            <div>
+              <h3 style="margin-top:0;">Select an item from the left</h3>
+              <p>Open an equipment or procedure entry to view overview content, documents, and insights.</p>
+            </div>
+          </div>`;
+        return;
+      }
+
+      root.innerHTML = `
+        <div class="page-title-row">
+          <div>
+            <h3>${escapeHtml(item.name)}</h3>
+            <div class="meta">Category: ${escapeHtml(category.name)} · ${item.docs.length} documents · ${item.insights.length} insights</div>
+          </div>
+          <div class="toolbar">
+            <button class="btn-secondary" onclick="openEditContentModal('${category.id}', '${item.id}')">Edit Content</button>
+            <button onclick="openAddDocModal('${category.id}', '${item.id}')">Add Doc</button>
+            <button class="btn-success" onclick="openAddInsightModal('${category.id}', '${item.id}')">Add Insight</button>
+          </div>
+        </div>
+
+        <div class="section-grid">
+          ${renderListCard('Overview', item.overview ? [item.overview] : [])}
+          ${renderListCard('Key Specs', item.keySpecs)}
+          ${renderListCard('System Relationships', item.systemRelationships)}
+          ${renderListCard('Test Usage', item.testUsage)}
+          ${renderListCard('Calibration', item.calibration)}
+          ${renderListCard('Common Issues', item.commonIssues)}
+          ${renderListCard('Troubleshooting', item.troubleshooting)}
+          <div class="card">
+            <h4>Documents</h4>
+            <div class="docs-list">
+              ${item.docs.length ? item.docs.map(doc => `
+                <div class="doc">
+                  <strong>${escapeHtml(doc.name)}</strong>
+                  <small>${escapeHtml(doc.note || 'No note added')}</small>
+                </div>
+              `).join('') : '<div class="doc">No documents added yet.</div>'}
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <h4>Insights</h4>
+          <div class="insight-list">
+            ${item.insights.length ? item.insights.map(insight => `
+              <div class="insight">
+                <strong>${escapeHtml(insight.title)}</strong>
+                <small>${escapeHtml(insight.body)}</small>
+              </div>
+            `).join('') : '<div class="insight">No insights added yet.</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderListCard(title, items) {
+      return `
+        <div class="card">
+          <h4>${escapeHtml(title)}</h4>
+          ${items && items.length ? `<ul>${items.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` : '<div class="meta">No content added yet.</div>'}
+        </div>
+      `;
+    }
+
+    function openModal(title, bodyHtml, footerHtml) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = bodyHtml;
+      document.getElementById('modalFooter').innerHTML = footerHtml;
+      document.getElementById('modalBackdrop').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modalBackdrop').style.display = 'none';
+    }
+
+    function openAddCategoryModal() {
+      openModal(
+        'Add Category',
+        `<div class="field"><label>Category Name</label><input id="newCategoryName" type="text" placeholder="Example: Equipment" /></div>`,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="addCategory()">Save</button>`
+      );
+    }
+
+    function addCategory() {
+      const name = document.getElementById('newCategoryName').value.trim();
+      if (!name) return alert('Please enter a category name.');
+      const data = getData();
+      data.categories.push({ id: cryptoRandom(), name, items: [] });
+      saveData(data);
+      closeModal();
+      renderNavigation();
+    }
+
+    function openRenameCategoryModal(categoryId) {
+      const data = getData();
+      const category = data.categories.find(c => c.id === categoryId);
+      openModal(
+        'Rename Category',
+        `<div class="field"><label>Category Name</label><input id="renameCategoryName" type="text" value="${escapeAttr(category.name)}" /></div>`,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="renameCategory('${categoryId}')">Save</button>`
+      );
+    }
+
+    function renameCategory(categoryId) {
+      const name = document.getElementById('renameCategoryName').value.trim();
+      if (!name) return alert('Please enter a category name.');
+      const data = getData();
+      const category = data.categories.find(c => c.id === categoryId);
+      category.name = name;
+      saveData(data);
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openAddItemModal(categoryId) {
+      openModal(
+        'Add Item',
+        `<div class="field"><label>Item Name</label><input id="newItemName" type="text" placeholder="Example: Generator" /></div>`,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="addItem('${categoryId}')">Save</button>`
+      );
+    }
+
+    function addItem(categoryId) {
+      const name = document.getElementById('newItemName').value.trim();
+      if (!name) return alert('Please enter an item name.');
+      const data = getData();
+      const category = data.categories.find(c => c.id === categoryId);
+      const item = emptyItem(name);
+      category.items.push(item);
+      saveData(data);
+      selectedCategoryId = categoryId;
+      selectedItemId = item.id;
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openRenameItemModal(categoryId, itemId) {
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      openModal(
+        'Rename Item',
+        `<div class="field"><label>Item Name</label><input id="renameItemName" type="text" value="${escapeAttr(item.name)}" /></div>`,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="renameItem('${categoryId}', '${itemId}')">Save</button>`
+      );
+    }
+
+    function renameItem(categoryId, itemId) {
+      const name = document.getElementById('renameItemName').value.trim();
+      if (!name) return alert('Please enter an item name.');
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      item.name = name;
+      saveData(data);
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openAddDocModal(categoryId, itemId) {
+      openModal(
+        'Add Document Entry',
+        `
+          <div class="field"><label>Document Name</label><input id="docName" type="text" placeholder="Example: GEN_Onboarding.docx" /></div>
+          <div class="field"><label>Note</label><textarea id="docNote" placeholder="Optional note about this document"></textarea></div>
+        `,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="addDoc('${categoryId}', '${itemId}')">Save</button>`
+      );
+    }
+
+    function addDoc(categoryId, itemId) {
+      const docName = document.getElementById('docName').value.trim();
+      const docNote = document.getElementById('docNote').value.trim();
+      if (!docName) return alert('Please enter a document name.');
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      item.docs.push({ id: cryptoRandom(), name: docName, note: docNote });
+      saveData(data);
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openAddInsightModal(categoryId, itemId) {
+      openModal(
+        'Add Insight',
+        `
+          <div class="field"><label>Insight Title</label><input id="insightTitle" type="text" placeholder="Example: Calibration repeatability concern" /></div>
+          <div class="field"><label>Insight Details</label><textarea id="insightBody" placeholder="Describe the observation, lesson learned, or recommendation"></textarea></div>
+        `,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="addInsight('${categoryId}', '${itemId}')">Save</button>`
+      );
+    }
+
+    function addInsight(categoryId, itemId) {
+      const title = document.getElementById('insightTitle').value.trim();
+      const body = document.getElementById('insightBody').value.trim();
+      if (!title || !body) return alert('Please enter both a title and details.');
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      item.insights.push({ id: cryptoRandom(), title, body });
+      saveData(data);
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function openEditContentModal(categoryId, itemId) {
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      openModal(
+        'Edit Item Content',
+        `
+          ${textField('Overview', 'editOverview', item.overview)}
+          ${textField('Key Specs (one line per entry)', 'editKeySpecs', (item.keySpecs || []).join('\n'), true)}
+          ${textField('System Relationships (one line per entry)', 'editSystemRelationships', (item.systemRelationships || []).join('\n'), true)}
+          ${textField('Test Usage (one line per entry)', 'editTestUsage', (item.testUsage || []).join('\n'), true)}
+          ${textField('Calibration (one line per entry)', 'editCalibration', (item.calibration || []).join('\n'), true)}
+          ${textField('Common Issues (one line per entry)', 'editCommonIssues', (item.commonIssues || []).join('\n'), true)}
+          ${textField('Troubleshooting (one line per entry)', 'editTroubleshooting', (item.troubleshooting || []).join('\n'), true)}
+        `,
+        `<button class="btn-secondary" onclick="closeModal()">Cancel</button><button onclick="saveItemContent('${categoryId}', '${itemId}')">Save</button>`
+      );
+    }
+
+    function textField(label, id, value, textarea = true) {
+      return `
+        <div class="field">
+          <label>${escapeHtml(label)}</label>
+          ${textarea ? `<textarea id="${id}">${escapeHtml(value || '')}</textarea>` : `<input id="${id}" type="text" value="${escapeAttr(value || '')}" />`}
+        </div>
+      `;
+    }
+
+    function saveItemContent(categoryId, itemId) {
+      const data = getData();
+      const item = data.categories.find(c => c.id === categoryId).items.find(i => i.id === itemId);
+      item.overview = document.getElementById('editOverview').value.trim();
+      item.keySpecs = splitLines('editKeySpecs');
+      item.systemRelationships = splitLines('editSystemRelationships');
+      item.testUsage = splitLines('editTestUsage');
+      item.calibration = splitLines('editCalibration');
+      item.commonIssues = splitLines('editCommonIssues');
+      item.troubleshooting = splitLines('editTroubleshooting');
+      saveData(data);
+      closeModal();
+      renderNavigation();
+      renderDetails();
+    }
+
+    function splitLines(id) {
+      return document.getElementById(id).value.split('\n').map(x => x.trim()).filter(Boolean);
+    }
+
+    function resetData() {
+      if (!confirm('Reset the site back to the demo data?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      selectedCategoryId = null;
+      selectedItemId = null;
+      initialize();
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/\n/g, '&#10;');
+    }
+
+    document.getElementById('modalBackdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'modalBackdrop') closeModal();
+    });
+
+    initialize();
+  </script>
+</body>
+</html>
